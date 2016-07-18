@@ -1,0 +1,30 @@
+---
+name: route_populator
+templates:
+  ctl.erb: bin/ctl
+
+packages:
+  - route_populator
+
+properties:
+  route_populator.nats:
+    description: Endpoint of the NATS server (including scheme, credentials, and port)
+    example: http://nats:nats@1.2.3.4:4200
+  route_populator.backend_host:
+    description: Host for the destination of the route.
+    example: 10.0.0.1
+  route_populator.backend_port:
+    description: Port for the destination of the route.
+    example: 8080
+  route_populator.app_domain:
+    description: The domain name for the routes to register.
+    example: apps.com
+  route_populator.app_name:
+    description: The name of the app for the route to register.
+    example: sample
+  route_populator.num_routes:
+    description: |
+      Number of routes to populate the routing table with.
+      The routes will be popuated as follows:
+        sample-0.apps.com, sample-1.apps.com, ..., sample-100000.apps.com
+    example: 100_000
