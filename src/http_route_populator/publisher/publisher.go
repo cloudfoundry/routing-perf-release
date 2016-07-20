@@ -3,6 +3,8 @@ package publisher
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
 )
 
 type ConnectionCreator func(endpoint string) (PublishingConnection, error)
@@ -103,12 +105,16 @@ func (p *Publisher) Initialize(c ConnectionCreator) error {
 }
 
 func (p *Publisher) PublishRouteRegistrations() error {
+	start := time.Now()
 	for i := 0; i < (p.job.EndRange - p.job.StartRange); i += 1 {
 		err := p.conn.Publish("router.register", p.data[i])
 		if err != nil {
 			return err
 		}
+		time.Sleep(500 * time.Microsecond)
 	}
+	ttp := time.Since(start)
+	log.Printf("Routes published in %f seconds: %d - %d, e.g. %s\n", ttp.Seconds(), p.job.StartRange, p.job.EndRange, string(p.data[0]))
 	return nil
 }
 
