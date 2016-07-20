@@ -1,0 +1,36 @@
+#!/bin/bash
+
+RUN_DIR=/var/vcap/sys/run/http_route_populator
+LOG_DIR=/var/vcap/sys/log/http_route_populator
+PIDFILE=${RUN_DIR}/pid
+
+case $1 in
+
+  start)
+    mkdir -p $RUN_DIR $LOG_DIR
+    chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+    echo $$ > $PIDFILE
+
+    exec /var/vcap/packages/http_route_populator/http_route_populator \
+      -nats <%= p("http_route_populator.nats") %> \
+      -backendHost <%= p("http_route_populator.backend_host") %> \
+      -backendPort <%= p("http_route_populator.backend_port") %> \
+      -appDomain <%= p("http_route_populator.app_domain") %> \
+      -appName <%= p("http_route_populator.app_name") %> \
+      -numRoutes <%= p("http_route_populator.num_routes") %> \
+      >>  $LOG_DIR/http_route_populator.log \
+      2>> $LOG_DIR/http_route_populator.stderr.log
+
+    ;;
+
+  stop)
+    kill -9 `cat $PIDFILE`
+    rm -f $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+
+esac

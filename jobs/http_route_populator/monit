@@ -1,0 +1,5 @@
+check process http_route_populator
+  with pidfile /var/vcap/sys/run/http_route_populator/pid
+  start program "/var/vcap/jobs/http_route_populator/bin/ctl start"
+  stop program "/var/vcap/jobs/http_route_populator/bin/ctl stop"
+  group vcap
