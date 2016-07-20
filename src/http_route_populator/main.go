@@ -7,6 +7,7 @@ import (
 	"http_route_populator/runner"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -120,7 +121,7 @@ func startPopulatingRoutes() {
 		EndRange:   *numRoutes,
 	}
 
-	numCPU := 1 // runtime.NumCPU()
+	numCPU := runtime.NumCPU()
 	// Heuristic to avoid spawning more goroutines than needed
 	if *numRoutes < 1000 {
 		numCPU = 1
