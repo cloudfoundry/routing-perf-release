@@ -14,3 +14,7 @@ blobs
 *~
 *#
 #*
+.cache
+pkg
+bin
+src/http_route_populator/http_route_populator
