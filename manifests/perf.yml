@@ -1,0 +1,38 @@
+name: "performance"
+director_uuid: DIRECTOR_UUID
+
+releases:
+- name: routing-perf
+  version: latest
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: http_route_populator
+  instances: 1
+  vm_type: default
+  stemcell: trusty
+  azs: [z1]
+  jobs:
+  - name: http_route_populator
+    release: routing-perf
+    properties:
+      http_route_populator:
+        nats: http://nats:nats@NATS_ADDRESS:NATS_PORT
+        backend_host: STATIC_BACKEND_HOST
+        backend_port: STATIC_BACKEND_PORT
+        app_domain: foo.com
+        app_name: foo
+        num_routes: 100000
+  networks:
+  - name: default
+
+update:
+  canaries: 1
+  canary_watch_time: 5000-120000
+  max_in_flight: 1
+  serial: false
+  update_watch_time: 5000-120000
