@@ -1,0 +1,30 @@
+---
+name: tcp_route_populator
+templates:
+  ctl.erb: bin/ctl
+  run.sh.erb: bin/run.sh
+
+properties:
+  tcp_route_populator.backend_host:
+    description: IP address of the test app.
+    example: 10.0.0.1
+
+  tcp_route_populator.backend_port:
+    description: Port for test app
+    example: 8080
+
+  tcp_route_populator.routing_api_url:
+    description: URL of the routing api
+    example: http://routing-api.cf.com:3000
+
+  tcp_route_populator.external_port_start:
+    description: Start range of external ports to bind TCP routes
+
+  tcp_route_populator.external_port_end:
+    description: End range of external ports to bind TCP routes
+
+  tcp_route_populator.sleep_interval:
+    description: Time between sending new TCP route registrations
+
+  tcp_route_populator.router_group_guid:
+    description: Router group guid of the TCP domain to use.
