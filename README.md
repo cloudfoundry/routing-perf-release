@@ -81,6 +81,6 @@ and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router).
 ## Deploying to BOSH on other IaaS's such as BOSH-Lite
 
 If you are deploying this release on any other IaaS's, you can update the
-[coud-config](manifests/cloud-config.yml) with the correct
+[cloud-config](manifests/cloud-config.yml) with the correct
 `cloud_properties`. For more information, refer to the
 [BOSH documentation](http://bosh.io/docs).
