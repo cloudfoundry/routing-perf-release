@@ -111,7 +111,7 @@ func (p *Publisher) PublishRouteRegistrations() error {
 		if err != nil {
 			return err
 		}
-		time.Sleep(500 * time.Microsecond)
+		time.Sleep(50 * time.Microsecond)
 	}
 	ttp := time.Since(start)
 	log.Printf("Routes published in %f seconds: %d - %d, e.g. %s\n", ttp.Seconds(), p.job.StartRange, p.job.EndRange, string(p.data[0]))
