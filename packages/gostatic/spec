@@ -1,0 +1,4 @@
+---
+name: gostatic
+files:
+  - gostatic/**/*

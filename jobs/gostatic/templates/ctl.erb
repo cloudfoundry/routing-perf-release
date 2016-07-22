@@ -1,0 +1,33 @@
+#!/bin/bash
+
+RUN_DIR=/var/vcap/sys/run/gostatic
+LOG_DIR=/var/vcap/sys/log/gostatic
+PIDFILE=${RUN_DIR}/pid
+
+export PORT=8080
+export RESPONSE_SIZE=<%= p("gostatic.response_size") %>
+
+case $1 in
+
+  start)
+    mkdir -p $RUN_DIR $LOG_DIR
+    chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+    echo $$ > $PIDFILE
+
+    exec /var/vcap/packages/gostatic/gostatic \
+      >>  $LOG_DIR/gostatic.stdout.log \
+      2>> $LOG_DIR/gostatic.stderr.log
+
+    ;;
+
+  stop)
+    kill -9 `cat $PIDFILE`
+    rm -f $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+
+esac

@@ -1,0 +1,5 @@
+check process gostatic
+  with pidfile /var/vcap/sys/run/gostatic/pid
+  start program "/var/vcap/jobs/gostatic/bin/ctl start"
+  stop program "/var/vcap/jobs/gostatic/bin/ctl stop"
+  group vcap

@@ -1,0 +1,6 @@
+---
+applications:
+ - name: static
+   env:
+     GOVERSION: go1.6
+     GOPACKAGENAME: github.com/cf-routing/gostatic

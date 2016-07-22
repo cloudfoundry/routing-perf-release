@@ -1,0 +1,22 @@
+# abort script on any command that exits with a non zero value
+set -e
+
+PACKAGES_DIR=${BOSH_PACKAGES_DIR:-/var/vcap/packages}
+
+wget https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz
+
+tar -C /usr/local -xzf go*.tar.gz
+
+export PATH=$PATH:/usr/local/go/bin
+
+mkdir -p ${BOSH_COMPILE_TARGET}/go/src
+
+mv ${BOSH_COMPILE_TARGET}/gostatic ${BOSH_COMPILE_TARGET}/go/src/
+cd ${BOSH_COMPILE_TARGET}/go/src/gostatic
+
+export GOPATH=${BOSH_COMPILE_TARGET}/go
+GOOS=linux GOARCH=amd64 go build
+
+mv gostatic ${BOSH_INSTALL_TARGET}
+
+

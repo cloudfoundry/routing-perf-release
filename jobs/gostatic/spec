@@ -1,0 +1,12 @@
+---
+name: gostatic
+templates:
+  ctl.erb: bin/ctl
+
+packages:
+  - gostatic
+
+properties:
+  gostatic.response_size:
+    description: "Size of the response returned when making a request on gostatic."
+    default: 1
