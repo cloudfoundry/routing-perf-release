@@ -32,12 +32,6 @@ property for gostatic.
   the root of the release repo.  You may manually need to update your `$GOPATH`
   and `$PATH` variables as you switch in and out of the directory.
 
-1. Initialize and sync submodules
-
-  ```
-	git submodule update
-  ```
-
 ## Deploying to BOSH on AWS
 
 ### Prerequisites
@@ -60,7 +54,7 @@ property for gostatic.
 
 
 ### Upload Release, Create a Deployment Manifest, and Deploy
-1. Clone this repo and sync submodules; see [Get the code](#get-the-code).
+1. Clone this repo; see [Get the code](#get-the-code).
 
 1. Create and upload the release
   ```sh
@@ -85,9 +79,21 @@ property for gostatic.
   bosh -n -d manifests/perf.yml deploy
   ```
 
-## Deploying to BOSH on other IaaS's such as BOSH-Lite
+## Deploying to BOSH on BOSH Lite
+
+This assumes you have running CF and Routing Release deployments running on
+BOSH Lite and that BOSH Lite is updated to a recent version that can support
+v2 manifest and v1 manifest deployments.
+
+You can follow the above instructions with this
+[cloud-config](manifests/cloud-config-bosh-lite.yml) and
+[deployment manifest](manifests/perf-bosh-lite.yml)
+Verify that the parameters in the deployment manifest are correct and simply
+BOSH deploy.
+
+## Deploying to BOSH on other IaaS's
 
 If you are deploying this release on any other IaaS's, you can update the
-[cloud-config](manifests/cloud-config.yml) with the correct
+[cloud-config](manifests/cloud-config-aws.yml) with the correct
 `cloud_properties`. For more information, refer to the
 [BOSH documentation](http://bosh.io/docs).

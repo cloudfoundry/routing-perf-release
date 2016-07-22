@@ -1,0 +1,29 @@
+azs:
+- name: z1
+
+vm_types:
+- name: default
+  cloud_properties:
+    ephemeral_disk:
+      size: 1024
+      type: gp2
+
+disk_types:
+- name: default
+  disk_size: 1024
+
+networks:
+- name: default
+  type: manual
+  subnets:
+  - range: 10.244.20.0/24
+    az: z1
+    gateway: 10.244.20.1
+    cloud_properties: {}
+
+compilation:
+  workers: 1
+  reuse_compilation_vms: true
+  az: z1
+  vm_type: default
+  network: default

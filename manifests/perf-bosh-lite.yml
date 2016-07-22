@@ -1,0 +1,74 @@
+name: "performance"
+director_uuid: 28539132-6d43-4e1b-bf40-f2ce032ee9f8
+
+releases:
+- name: routing-perf
+  version: latest
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: gostatic
+  instances: 1
+  vm_type: default
+  stemcell: trusty
+  azs: [z1]
+  jobs:
+  - name: gostatic
+    release: routing-perf
+    provides:
+      static: {as: gostatic}
+    properties:
+      gostatic:
+        response_size: 1
+  networks:
+  - name: default
+
+- name: http_route_populator
+  instances: 1
+  vm_type: default
+  stemcell: trusty
+  azs: [z1]
+  jobs:
+  - name: http_route_populator
+    release: routing-perf
+    consumes:
+      static: {from: gostatic}
+    properties:
+      http_route_populator:
+        nats: http://nats:nats@10.244.0.6:4222
+        app_domain: foo.com
+        app_name: gostatic
+        num_routes: 100000
+  networks:
+  - name: default
+
+- name: tcp_route_populator
+  instances: 1
+  vm_type: default
+  stemcell: trusty
+  azs: [z1]
+  jobs:
+  - name: tcp_route_populator
+    release: routing-perf
+    consumes:
+      static: {from: gostatic}
+    properties:
+      tcp_route_populator:
+        routing_api_url: http://10.244.14.10:3000
+        external_port_start: 60000
+        external_port_end: 60999
+        sleep_interval: 10
+        router_group_guid: e2149a93-eddf-4b82-5d21-c654eb8cd22f
+  networks:
+  - name: default
+
+update:
+  canaries: 1
+  canary_watch_time: 5000-120000
+  max_in_flight: 1
+  serial: false
+  update_watch_time: 5000-120000

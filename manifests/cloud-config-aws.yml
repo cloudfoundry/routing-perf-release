@@ -36,5 +36,5 @@ compilation:
   workers: 3
   reuse_compilation_vms: true
   az: z1
-  vm_type: compilation
+  vm_type: default
   network: default
