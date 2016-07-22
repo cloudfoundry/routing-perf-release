@@ -11,6 +11,22 @@ stemcells:
   version: latest
 
 instance_groups:
+- name: gostatic
+  instances: 1
+  vm_type: default
+  stemcell: trusty
+  azs: [z1]
+  jobs:
+  - name: gostatic
+    release: routing-perf
+    provides:
+      static: {as: gostatic}
+    properties:
+      gostatic:
+        response_size: 1
+  networks:
+  - name: default
+
 - name: http_route_populator
   instances: 1
   vm_type: default
@@ -19,14 +35,34 @@ instance_groups:
   jobs:
   - name: http_route_populator
     release: routing-perf
+    consumes:
+      static: {from: gostatic}
     properties:
       http_route_populator:
-        nats: http://nats:nats@NATS_ADDRESS:NATS_PORT
-        backend_host: STATIC_BACKEND_HOST
-        backend_port: STATIC_BACKEND_PORT
+        nats: http://NATS_USER:NATS_PASSWORD@NATS_ENDPOINT:NATS_PORT
         app_domain: foo.com
-        app_name: foo
+        app_name: gostatic
         num_routes: 100000
+  networks:
+  - name: default
+
+- name: tcp_route_populator
+  instances: 1
+  vm_type: default
+  stemcell: trusty
+  azs: [z1]
+  jobs:
+  - name: tcp_route_populator
+    release: routing-perf
+    consumes:
+      static: {from: gostatic}
+    properties:
+      tcp_route_populator:
+        routing_api_url: http://ROUTING_API_URL:ROUTING_API_PORT
+        external_port_start: 60000
+        external_port_end: 60999
+        sleep_interval: 10
+        router_group_guid: ROUTER_GROUP_GUID
   networks:
   - name: default
 

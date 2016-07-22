@@ -5,6 +5,10 @@ A BOSH release containing benchmarking tools and utilities to setup the
 performance testing for the [gorouter](https://github.com/cloudfoundry/gorouter)
 and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router).
 
+This release will deploy a static backend app that returns 1kB of static data
+by default. This can be configured via the `gostatic.response_size` job
+property for gostatic.
+
 ### Get the code
 
 1. Fetch release repo
@@ -45,11 +49,14 @@ and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router).
 	bosh upload stemcell https://bosh.io/d/stemcells/bosh-aws-xen-hvm-ubuntu-trusty-go_agent
 	```
 
-1. Make sure you have [NATS](https://github.com/cloudfoundry/nats-release/),
-   [gorouter](https://github.com/cloudfoundry/gorouter/), and a
-   [static backend](https://github.com/cf-routing/gostatic-release) deployed.
+1. Make sure you have [NATS](https://github.com/cloudfoundry/nats-release/)
+   and [gorouter](https://github.com/cloudfoundry/gorouter/) deployed.
    The `http_route_populator` job will need gorouter listening on NATS to
    populate the routing table with routes pointing to the static backend.
+1. Make sure you have
+   [Routing API and TCP Router](https://github.com/cloudfoundry-incubator/routing-release)
+   deployed. The `tcp_route_populator` will require the Routing API in order
+   to have TCP routes pointing to the static backend.
 
 
 ### Upload Release, Create a Deployment Manifest, and Deploy
