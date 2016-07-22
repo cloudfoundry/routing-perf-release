@@ -6,16 +6,14 @@ templates:
 packages:
   - http_route_populator
 
+consumes:
+  - name: static
+    type: backend
+
 properties:
   http_route_populator.nats:
     description: Endpoint of the NATS server (including scheme, credentials, and port)
     example: http://nats:nats@1.2.3.4:4200
-  http_route_populator.backend_host:
-    description: Host for the destination of the route.
-    example: 10.0.0.1
-  http_route_populator.backend_port:
-    description: Port for the destination of the route.
-    example: 8080
   http_route_populator.app_domain:
     description: The domain name for the routes to register.
     example: apps.com

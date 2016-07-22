@@ -6,6 +6,10 @@ templates:
 packages:
   - gostatic
 
+provides:
+  - name: static
+    type: backend
+
 properties:
   gostatic.response_size:
     description: "Size of the response returned when making a request on gostatic."

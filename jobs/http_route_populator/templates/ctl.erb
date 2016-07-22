@@ -14,8 +14,8 @@ case $1 in
 
     exec /var/vcap/packages/http_route_populator/http_route_populator \
       -nats <%= p("http_route_populator.nats") %> \
-      -backendHost <%= p("http_route_populator.backend_host") %> \
-      -backendPort <%= p("http_route_populator.backend_port") %> \
+      -backendHost <%= link("static").instances[0].address %> \
+      -backendPort 8080 \
       -appDomain <%= p("http_route_populator.app_domain") %> \
       -appName <%= p("http_route_populator.app_name") %> \
       -numRoutes <%= p("http_route_populator.num_routes") %> \
