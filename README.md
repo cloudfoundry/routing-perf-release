@@ -51,7 +51,9 @@ property for gostatic.
    [Routing API and TCP Router](https://github.com/cloudfoundry-incubator/routing-release)
    deployed. The `tcp_route_populator` will require the Routing API in order
    to have TCP routes pointing to the static backend.
-
+   > **NOTE**: The `routing_api.auth_disabled` property should be set to `true`
+   > since the tcp_route_populator does not support grabbing a UAA token for
+   > authentication.
 
 ### Upload Release, Create a Deployment Manifest, and Deploy
 1. Clone this repo; see [Get the code](#get-the-code).
