@@ -9,15 +9,11 @@ packages:
   - jmeter
   - openjdk
 
-consumes:
-  - name: static
-    type: backend
-
 properties:
+  performance_tests.address:
+    description: The address to run performance tests against
   performance_tests.host:
     description: The host to specify in the 'Host:' header
-  performance_tests.log_prefix:
-    description: The prefix to use in output file names
   performance_tests.port:
     description: The port that JMeter will attempt to connect to
   performance_tests.protocol:

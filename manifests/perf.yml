@@ -66,6 +66,28 @@ instance_groups:
   networks:
   - name: default
 
+- name: performance_tests
+  instances: 1
+  lifecycle: errand
+  vm_type: default
+  stemcell: trusty
+  networks:
+  - name: default
+  azs:
+  - z1
+  jobs:
+  - name: performance_tests
+    release: routing-perf
+    properties:
+      performance_tests:
+        address: ROUTER_API_ADDRESS
+        host: gostatic-0.foo.com
+        port: 80
+        protocol: http
+        num_requests: 50000
+        num_threads: 100
+        datadog_api_key: DATADOG_API_KEY
+
 update:
   canaries: 1
   canary_watch_time: 5000-120000

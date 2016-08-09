@@ -6,28 +6,47 @@ export PATH=$PATH:/var/vcap/packages/jmeter/apache-jmeter/bin
 
 LOG_DIR=/var/vcap/sys/log/performance_tests
 
-date=$(date +%s)
-num_loops=$((<%= properties.performance_tests.num_requests %>/<%=properties.performance_tests.num_threads%>))
+RPS=0
 
-jmeter -n -t /var/vcap/jobs/performance_tests/bin/jmeter-general.jmx \
-  -Jnum_threads=<%=properties.performance_tests.num_threads%> \
-  -Jnum_loops=$num_loops \
-  -Jdomain=<%= link("static").instances[0].address %> \
-  -Jport=<%= properties.performance_tests.port %> \
-  -Jhost=<%= properties.performance_tests.host %> \
-  -Jprotocol=<%= properties.performance_tests.protocol %> \
-  -j ${LOG_DIR}/jmeter_${date}.log \
-  -l ${LOG_DIR}/perf_tests_jmeter_${date}.csv | tee ${LOG_DIR}/summary_${date}.log
+ensure_log_dir() {
+  mkdir -p ${LOG_DIR}
+}
 
-rps=$(grep "summary =" ${LOG_DIR}/summary_${date}.log | tail -1 | awk '{ print $7 }' | rev | cut -c 3- | rev)
-echo "REQUESTS PER SECOND: ${rps}"
+run_perf_tests() {
+  date=$(date +%s)
+  num_loops=$((<%= properties.performance_tests.num_requests %>/<%=properties.performance_tests.num_threads%>))
 
-currenttime=$(date +%s)
-curl  -X POST -H "Content-type: application/json" \
--d "{ \"series\" :
-         [{\"metric\":\"test.performance_tests.throughput\",
-          \"points\":[[$currenttime, $rps]],
-          \"type\":\"gauge\"}
-        ]
-    }" \
-    'https://app.datadoghq.com/api/v1/series?api_key=<%=properties.performance_tests.datadog_api_key %>'
+  jmeter -n -t /var/vcap/jobs/performance_tests/bin/jmeter-general.jmx \
+    -Jnum_threads=<%=properties.performance_tests.num_threads%> \
+    -Jnum_loops=$num_loops \
+    -Jdomain=<%= properties.performance_tests.address %> \
+    -Jport=<%= properties.performance_tests.port %> \
+    -Jhost=<%= properties.performance_tests.host %> \
+    -Jprotocol=<%= properties.performance_tests.protocol %> \
+    -j ${LOG_DIR}/jmeter_${date}.log \
+    -l ${LOG_DIR}/perf_tests_jmeter_${date}.csv | tee ${LOG_DIR}/summary_${date}.log
+
+  RPS=$(grep "summary =" ${LOG_DIR}/summary_${date}.log | tail -1 | awk '{ print $7 }' | rev | cut -c 3- | rev)
+  echo "REQUESTS PER SECOND: ${RPS}"
+}
+
+emit_datadog_throughput_metric() {
+  rps=$1
+  currenttime=$(date +%s)
+  curl  -X POST -H "Content-type: application/json" \
+  -d "{ \"series\" :
+           [{\"metric\":\"test.performance_tests.requests_per_second\",
+            \"points\":[[$currenttime, $rps]],
+            \"type\":\"gauge\"}
+          ]
+      }" \
+      'https://app.datadoghq.com/api/v1/series?api_key=<%=properties.performance_tests.datadog_api_key %>'
+}
+
+main() {
+  ensure_log_dir
+  run_perf_tests
+  emit_datadog_throughput_metric ${RPS}
+}
+
+main
