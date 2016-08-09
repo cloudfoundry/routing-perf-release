@@ -1,1 +1,13 @@
---- {}
+---
+openjdk/openjdk-1.8.0_91-x86_64-mountainlion.tar.gz:
+  object_id: 805bc745-42e7-4794-9217-fe3bc743da7f
+  sha: 9e916262cf92d6ca0b09f9261d30aeca05f214d7
+  size: 75516939
+openjdk/openjdk-1.8.0_91-x86_64-trusty.tar.gz:
+  object_id: 28a124c3-53e8-4aaa-b67a-bbf3cc2bb84a
+  sha: 69c612c7f783aad33f4d73ec9b44e1a2ee50f386
+  size: 78278698
+jmeter/apache-jmeter-3.0.tgz:
+  object_id: 392e48c6-ff1b-4394-97f6-c166eaeade96
+  sha: 0063516826add27a49eb391e61a6a60dc8065813
+  size: 45178166
