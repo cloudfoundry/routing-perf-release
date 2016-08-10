@@ -7,6 +7,7 @@ export PATH=$PATH:/var/vcap/packages/jmeter/apache-jmeter/bin
 LOG_DIR=/var/vcap/sys/log/performance_tests
 
 RPS=0
+NUM_ERRS="could not extract number of errors from summary"
 
 ensure_log_dir() {
   mkdir -p ${LOG_DIR}
@@ -14,10 +15,10 @@ ensure_log_dir() {
 
 run_perf_tests() {
   date=$(date +%s)
-  num_loops=$((<%= properties.performance_tests.num_requests %>/<%=properties.performance_tests.num_threads%>))
+  num_loops=$((<%= properties.performance_tests.num_requests %>/<%=properties.performance_tests.concurrent_requests%>))
 
   jmeter -n -t /var/vcap/jobs/performance_tests/bin/jmeter-general.jmx \
-    -Jnum_threads=<%=properties.performance_tests.num_threads%> \
+    -Jnum_threads=<%=properties.performance_tests.concurrent_requests%> \
     -Jnum_loops=$num_loops \
     -Jdomain=<%= properties.performance_tests.address %> \
     -Jport=<%= properties.performance_tests.port %> \
@@ -28,6 +29,9 @@ run_perf_tests() {
 
   RPS=$(grep "summary =" ${LOG_DIR}/summary_${date}.log | tail -1 | awk '{ print $7 }' | rev | cut -c 3- | rev)
   echo "REQUESTS PER SECOND: ${RPS}"
+
+  NUM_ERRS=$(grep "summary =" ${LOG_DIR}/summary_${date}.log | tail -1 | awk '{ print $15 }')
+  echo "Number of Errors: ${NUM_ERRS}"
 }
 
 emit_datadog_throughput_metric() {
@@ -46,6 +50,12 @@ emit_datadog_throughput_metric() {
 main() {
   ensure_log_dir
   run_perf_tests
+
+  if [[ ${NUM_ERRS} != 0 ]]; then
+    echo "Performance tests generated HTTP error from router"
+    exit 1
+  fi
+
   emit_datadog_throughput_metric ${RPS}
 }
 

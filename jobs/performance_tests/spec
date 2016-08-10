@@ -15,12 +15,12 @@ properties:
   performance_tests.host:
     description: The host to specify in the 'Host:' header
   performance_tests.port:
-    description: The port that JMeter will attempt to connect to
+    description: The port that tests will attempt to connect to
   performance_tests.protocol:
-    description: The protocol of the HTTPSampler (http or https)
+    description: The protocol of the Router port (http or https)
   performance_tests.num_requests:
-    description: The number of requests that JMeter should make
-  performance_tests.num_threads:
-    description: The number of threads that JMeter should run
+    description: The number of requests that performance_tests should make
+  performance_tests.concurrent_requests:
+    description: The number of concurrent requests
   performance_tests.datadog_api_key:
     description: The API key used to post metrics to DataDog
