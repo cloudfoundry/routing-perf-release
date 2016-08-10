@@ -12,7 +12,7 @@ case $1 in
 
     echo $$ > $PIDFILE
 
-    exec /var/vcap/packages/http_route_populator/http_route_populator \
+    exec /var/vcap/packages/http_route_populator/bin/http_route_populator \
       -nats <%= p("http_route_populator.nats") %> \
       -backendHost <%= link("static").instances[0].address %> \
       -backendPort 8080 \

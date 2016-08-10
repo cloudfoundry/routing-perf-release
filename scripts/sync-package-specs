@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -e
+
+# ensure gosub is installed (this will recompile it only if necessary)
+go get github.com/vito/gosub
+go install github.com/vito/gosub
+
+function sync_package() {
+  bosh_pkg=${1}
+
+  shift
+
+  (
+    set -e
+
+    cd packages/${bosh_pkg}
+
+    {
+      cat spec | grep -v '# gosub'
+
+      for package in $(gosub list "$@"); do
+        repo=$(echo ${2} | cut -f1-3 -d/)
+        echo ${package} | sed -e 's/\(.*\)/  - \1\/*.go # gosub/g'
+      done
+    } > spec.new
+
+    mv spec.new spec
+  )
+}
+
+sync_package gostatic   -app gostatic/... &
+sync_package http_route_populator -app http_route_populator/... &
+sync_package boom       -app github.com/rakyll/boom/... &
+
+wait
+
+git diff --name-only packages/*/spec

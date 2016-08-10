@@ -18,3 +18,5 @@ blobs
 pkg
 bin
 src/http_route_populator/http_route_populator
+src/github.com/codegangsta/
+src/github.com/vito/

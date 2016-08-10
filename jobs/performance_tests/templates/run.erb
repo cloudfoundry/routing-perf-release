@@ -1,13 +1,13 @@
 #!/bin/bash -l
 
-export JAVA_HOME=/var/vcap/packages/openjdk/jdk
-export PATH=$PATH:$JAVA_HOME/bin
-export PATH=$PATH:/var/vcap/packages/jmeter/apache-jmeter/bin
-
 LOG_DIR=/var/vcap/sys/log/performance_tests
 
 RPS=0
-NUM_ERRS="could not extract number of errors from summary"
+NUM_OK="could not extract status codes of responses from summary"
+
+TOTAL_REQUESTS=<%= properties.performance_tests.num_requests %>
+TOTAL_CONCURRENT=<%=properties.performance_tests.concurrent_requests%>
+URI=<%= properties.performance_tests.protocol %>://<%= properties.performance_tests.address %>:<%= properties.performance_tests.port %>
 
 ensure_log_dir() {
   mkdir -p ${LOG_DIR}
@@ -17,21 +17,21 @@ run_perf_tests() {
   date=$(date +%s)
   num_loops=$((<%= properties.performance_tests.num_requests %>/<%=properties.performance_tests.concurrent_requests%>))
 
-  jmeter -n -t /var/vcap/jobs/performance_tests/bin/jmeter-general.jmx \
-    -Jnum_threads=<%=properties.performance_tests.concurrent_requests%> \
-    -Jnum_loops=$num_loops \
-    -Jdomain=<%= properties.performance_tests.address %> \
-    -Jport=<%= properties.performance_tests.port %> \
-    -Jhost=<%= properties.performance_tests.host %> \
-    -Jprotocol=<%= properties.performance_tests.protocol %> \
-    -j ${LOG_DIR}/jmeter_${date}.log \
-    -l ${LOG_DIR}/perf_tests_jmeter_${date}.csv | tee ${LOG_DIR}/summary_${date}.log
+  # run load test
+  echo "Starting load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
+  exec /var/vcap/packages/boom/bin/boom \
+    -n $TOTAL_REQUESTS \
+    -c $TOTAL_CONCURRENT \
+    -host "<%=properties.performance_tests.host %>" \
+    ${URI} | tee ${LOG_DIR}/loadtest_${date}.log
+  echo ""
 
-  RPS=$(grep "summary =" ${LOG_DIR}/summary_${date}.log | tail -1 | awk '{ print $7 }' | rev | cut -c 3- | rev)
-  echo "REQUESTS PER SECOND: ${RPS}"
+  # requests / sec
+  data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
+  RPS=${data//[[:blank:]]/}
+  echo "requests_per_sec: ${RPS}"
 
-  NUM_ERRS=$(grep "summary =" ${LOG_DIR}/summary_${date}.log | tail -1 | awk '{ print $15 }')
-  echo "Number of Errors: ${NUM_ERRS}"
+  NUM_OK=$(grep "\[200\]" ${LOG_DIR}/loadtest_${date}.log | awk '{ print $2 }')
 }
 
 emit_datadog_throughput_metric() {
@@ -51,7 +51,7 @@ main() {
   ensure_log_dir
   run_perf_tests
 
-  if [[ ${NUM_ERRS} != 0 ]]; then
+  if [[ ${NUM_OK} != ${TOTAL_REQUESTS} ]]; then
     echo "Performance tests generated HTTP error from router"
     exit 1
   fi

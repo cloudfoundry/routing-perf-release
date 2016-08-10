@@ -1,4 +1,15 @@
 ---
 name: gostatic
+dependencies:
+- golang
 files:
-  - gostatic/**/*
+  - gostatic/vendor/**/*
+  - gostatic/*.go # gosub
+  - gostatic/vendor/github.com/klauspost/compress/flate/*.go # gosub
+  - gostatic/vendor/github.com/klauspost/compress/gzip/*.go # gosub
+  - gostatic/vendor/github.com/klauspost/compress/zlib/*.go # gosub
+  - gostatic/vendor/github.com/klauspost/cpuid/*.go # gosub
+  - gostatic/vendor/github.com/klauspost/crc32/*.go # gosub
+  - gostatic/vendor/github.com/valyala/bytebufferpool/*.go # gosub
+  - gostatic/vendor/github.com/valyala/fasthttp/*.go # gosub
+  - gostatic/vendor/github.com/valyala/fasthttp/fasthttputil/*.go # gosub

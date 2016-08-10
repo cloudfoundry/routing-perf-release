@@ -1,0 +1,10 @@
+---
+name: boom
+dependencies:
+  - golang
+files:
+  - github.com/rakyll/boom/*.go # gosub
+  - github.com/rakyll/boom/boomer/*.go # gosub
+  - golang.org/x/net/http2/*.go # gosub
+  - golang.org/x/net/http2/hpack/*.go # gosub
+  - golang.org/x/net/lex/httplex/*.go # gosub

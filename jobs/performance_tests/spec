@@ -3,11 +3,9 @@ name: performance_tests
 
 templates:
   run.erb: bin/run
-  jmeter-general.jmx.erb: bin/jmeter-general.jmx
 
 packages:
-  - jmeter
-  - openjdk
+  - boom
 
 properties:
   performance_tests.address:

@@ -15,7 +15,7 @@ case $1 in
 
     echo $$ > $PIDFILE
 
-    exec /var/vcap/packages/gostatic/gostatic \
+    exec /var/vcap/packages/gostatic/bin/gostatic \
       >>  $LOG_DIR/gostatic.stdout.log \
       2>> $LOG_DIR/gostatic.stderr.log
 
