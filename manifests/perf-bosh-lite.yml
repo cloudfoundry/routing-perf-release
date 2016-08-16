@@ -66,7 +66,7 @@ instance_groups:
   networks:
   - name: default
 
-- name: performance_tests
+- name: http_performance_tests
   instances: 1
   lifecycle: errand
   vm_type: default
@@ -85,7 +85,31 @@ instance_groups:
         port: 80
         protocol: http
         num_requests: 50000
-        num_threads: 100
+        concurrent_requests: 100
+        router_tag: gorouter-bosh-lite
+        datadog_api_key: DATADOG_API_KEY
+
+- name: tcp_performance_tests
+  instances: 1
+  lifecycle: errand
+  vm_type: default
+  stemcell: trusty
+  azs:
+  - z1
+  networks:
+  - name: default
+  jobs:
+  - name: performance_tests
+    release: routing-perf
+    properties:
+      performance_tests:
+        address: 10.244.14.2
+        host: tcp.bosh-lite.com
+        port: 60001
+        protocol: http
+        num_requests: 50000
+        concurrent_requests: 100
+        router_tag: tcp_router-bosh-lite
         datadog_api_key: DATADOG_API_KEY
 
 update:

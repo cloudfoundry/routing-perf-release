@@ -7,7 +7,7 @@ SLEEP_TIME=<%= p("tcp_route_populator.sleep_interval") %>
 function add_tcp_routes() {
   for i in $(seq $START_PORT $END_PORT);
   do
-    echo "Adding TCP route entry for port: $i"
+    echo "\nAdding TCP route entry for port: $i"
     curl <%= p("tcp_route_populator.routing_api_url") %>/routing/v1/tcp_routes/create -X POST -d '[{ "router_group_guid": "<%= p("tcp_route_populator.router_group_guid") %>", "port": '$i', "backend_port": 8080, "backend_ip": "<%= link("static").instances[0].address %>", "ttl": 120 }]'
   done
 }
