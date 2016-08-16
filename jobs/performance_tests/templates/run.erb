@@ -37,12 +37,14 @@ run_perf_tests() {
 emit_datadog_throughput_metric() {
   rps=$1
   currenttime=$(date +%s)
+  deployment=<%= spec.deployment %>
+
   curl  -X POST -H "Content-type: application/json" \
   -d "{ \"series\" :
-           [{\"metric\":\"test.performance_tests.requests_per_second\",
+           [{\"metric\":\"performance.requests_per_second\",
             \"points\":[[$currenttime, $rps]],
-            \"type\":\"gauge\"}
-          ]
+            \"tags\":[\"deployment:$deployment\"],
+            \"type\":\"gauge\"}]
       }" \
       'https://app.datadoghq.com/api/v1/series?api_key=<%=properties.performance_tests.datadog_api_key %>'
 }
