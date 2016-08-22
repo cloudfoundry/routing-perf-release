@@ -22,5 +22,8 @@ properties:
     description: The number of concurrent requests
   performance_tests.router_tag:
     description: A tag to add to the datadog metric, e.g. gorouter, tcp_router
+  performance_tests.routing_release_version:
+    description: Version of the routing release the errand is being run against
+    default: ""
   performance_tests.datadog_api_key:
     description: The API key used to post metrics to DataDog

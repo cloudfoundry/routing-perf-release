@@ -39,12 +39,13 @@ emit_datadog_throughput_metric() {
   currenttime=$(date +%s)
   deployment=<%= spec.deployment %>
   router=<%= properties.performance_tests.router_tag %>
+  version=<%= properties.performance_tests.routing_release_version %>
 
   curl  -X POST -H "Content-type: application/json" \
   -d "{ \"series\" :
            [{\"metric\":\"performance.requests_per_second\",
             \"points\":[[$currenttime, $rps]],
-            \"tags\":[\"deployment:$deployment\", \"router:$router\"],
+            \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"],
             \"type\":\"gauge\"}]
       }" \
       'https://app.datadoghq.com/api/v1/series?api_key=<%=properties.performance_tests.datadog_api_key %>'
