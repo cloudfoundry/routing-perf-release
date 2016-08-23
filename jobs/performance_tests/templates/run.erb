@@ -5,9 +5,10 @@ LOG_DIR=/var/vcap/sys/log/performance_tests
 RPS=0
 NUM_OK="could not extract status codes of responses from summary"
 
-TOTAL_REQUESTS=<%= properties.performance_tests.num_requests %>
-TOTAL_CONCURRENT=<%=properties.performance_tests.concurrent_requests%>
-URI=<%= properties.performance_tests.protocol %>://<%= properties.performance_tests.address %>:<%= properties.performance_tests.port %>
+RPS_LOWER_LIMIT=<%= p("performance_tests.throughput_lower_limit") %>
+TOTAL_REQUESTS=<%= p("performance_tests.num_requests") %>
+TOTAL_CONCURRENT=<%= p("performance_tests.concurrent_requests") %>
+URI=<%= p("performance_tests.protocol") %>://<%= p("performance_tests.address") %>:<%= p("performance_tests.port") %>
 
 ensure_log_dir() {
   mkdir -p ${LOG_DIR}
@@ -15,14 +16,14 @@ ensure_log_dir() {
 
 run_perf_tests() {
   date=$(date +%s)
-  num_loops=$((<%= properties.performance_tests.num_requests %>/<%=properties.performance_tests.concurrent_requests%>))
+  num_loops=$((<%= p("performance_tests.num_requests") %>/<%=p("performance_tests.concurrent_requests")%>))
 
   # run load test
   echo "Starting load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
   exec /var/vcap/packages/boom/bin/boom \
     -n $TOTAL_REQUESTS \
     -c $TOTAL_CONCURRENT \
-    -host "<%=properties.performance_tests.host %>" \
+    -host "<%=p("performance_tests.host") %>" \
     ${URI} | tee ${LOG_DIR}/loadtest_${date}.log
   echo ""
 
@@ -38,8 +39,8 @@ emit_datadog_throughput_metric() {
   rps=$1
   currenttime=$(date +%s)
   deployment=<%= spec.deployment %>
-  router=<%= properties.performance_tests.router_tag %>
-  version=<%= properties.performance_tests.routing_release_version %>
+  router=<%= p("performance_tests.router_tag") %>
+  version=<%= p("performance_tests.routing_release_version") %>
 
   curl  -X POST -H "Content-type: application/json" \
   -d "{ \"series\" :
@@ -48,7 +49,7 @@ emit_datadog_throughput_metric() {
             \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"],
             \"type\":\"gauge\"}]
       }" \
-      'https://app.datadoghq.com/api/v1/series?api_key=<%=properties.performance_tests.datadog_api_key %>'
+      'https://app.datadoghq.com/api/v1/series?api_key=<%=p("performance_tests.datadog_api_key") %>'
 }
 
 main() {
@@ -61,6 +62,11 @@ main() {
   fi
 
   emit_datadog_throughput_metric ${RPS}
+
+  if [[ ${RPS} != ${RPS_LOWER_LIMIT} ]]; then
+    echo "${RPS} requests per second is lower than threshold of ${RPS_LOWER_LIMIT}"
+    exit 1
+  fi
 }
 
 main

@@ -20,6 +20,8 @@ properties:
     description: The number of requests that performance_tests should make
   performance_tests.concurrent_requests:
     description: The number of concurrent requests
+  performance_tests.throughput_lower_limit:
+    description: Lower limit for requests per second, the errand will fail if value is below this property
   performance_tests.router_tag:
     description: A tag to add to the datadog metric, e.g. gorouter, tcp_router
   performance_tests.routing_release_version:
