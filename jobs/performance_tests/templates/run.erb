@@ -32,7 +32,7 @@ run_perf_tests() {
   RPS=${data//[[:blank:]]/}
   echo "requests_per_sec: ${RPS}"
 
-  NUM_OK=$(grep "\[200\]" ${LOG_DIR}/loadtest_${date}.log | awk '{ print $2 }')
+  NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/loadtest_${date}.log | awk '{ print $2 }')
 }
 
 emit_datadog_throughput_metric() {
