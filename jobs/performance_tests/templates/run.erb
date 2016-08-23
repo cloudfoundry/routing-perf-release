@@ -63,7 +63,7 @@ main() {
 
   emit_datadog_throughput_metric ${RPS}
 
-  if [[ ${RPS} != ${RPS_LOWER_LIMIT} ]]; then
+  if [[ ${RPS} -le ${RPS_LOWER_LIMIT} ]]; then
     echo "${RPS} requests per second is lower than threshold of ${RPS_LOWER_LIMIT}"
     exit 1
   fi
