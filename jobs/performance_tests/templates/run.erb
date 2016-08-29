@@ -1,5 +1,7 @@
 #!/bin/bash -l
 
+set -e
+
 LOG_DIR=/var/vcap/sys/log/performance_tests
 
 RPS=0
@@ -63,7 +65,9 @@ main() {
 
   emit_datadog_throughput_metric ${RPS}
 
-  if [[ ${RPS} -le ${RPS_LOWER_LIMIT} ]]; then
+  RPSINT=`echo ${RPS} | cut -f 1 -d "."`
+
+  if [[ ${RPSINT} -le ${RPS_LOWER_LIMIT} ]]; then
     echo "${RPS} requests per second is lower than threshold of ${RPS_LOWER_LIMIT}"
     exit 1
   fi
