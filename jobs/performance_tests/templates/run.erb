@@ -61,9 +61,9 @@ emit_datadog_metrics() {
   curl -X POST -H "Content-type: application/json" -d "
     {\"series\": [
       {\"metric\":\"performance.requests_per_second\", \"points\":[[$currenttime, $rps]],       \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" },
-      {\"metric\":\"performance.latency_90\",          \"points\":[[$currenttime, $latency90]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"count\" },
-      {\"metric\":\"performance.latency_95\",          \"points\":[[$currenttime, $latency95]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"count\" },
-      {\"metric\":\"performance.latency_99\",          \"points\":[[$currenttime, $latency99]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"count\" }
+      {\"metric\":\"performance.latency_90\",          \"points\":[[$currenttime, $latency90]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" },
+      {\"metric\":\"performance.latency_95\",          \"points\":[[$currenttime, $latency95]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" },
+      {\"metric\":\"performance.latency_99\",          \"points\":[[$currenttime, $latency99]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" }
     ]}" \
     'https://app.datadoghq.com/api/v1/series?api_key=<%=p("performance_tests.datadog_api_key") %>'
 }
