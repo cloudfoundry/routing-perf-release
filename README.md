@@ -16,7 +16,7 @@ property for gostatic.
   ```
   mkdir -p ~/workspace
   cd ~/workspace
-  git clone https://github.com/cf-routing/routing-perf-release.git
+  git clone https://github.com/cloudfoundry-incubator/routing-perf-release.git
   cd routing-perf-release/
   ```
 
