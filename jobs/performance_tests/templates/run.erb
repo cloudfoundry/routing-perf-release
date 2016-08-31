@@ -87,8 +87,8 @@ main() {
     exit 1
   fi
 
-  LATENCY_90_INT=`echo ${LATENCY_90}*10000 | bc -l | cut -f 1 -d "."`
-  LATENCY_UPPER_LIMIT_INT = `echo ${LATENCY_UPPER_LIMIT}*10 | bc -l | cut -f 1 -d "."`
+  LATENCY_90_INT=`echo - | awk "{print ${LATENCY_90} * 10000 }" | cut -f 1 -d "."`
+  LATENCY_UPPER_LIMIT_INT=`echo - | awk "{print ${LATENCY_UPPER_LIMIT} * 10 }" | cut -f 1 -d "."`
   if [[ ${LATENCY_90_INT} -ge ${LATENCY_UPPER_LIMIT_INT} ]]; then
   echo "The 90th percentile latency, ${LATENCY_90}, is higher than the threshold of ${LATENCY_UPPER_LIMIT}"
     exit 1
