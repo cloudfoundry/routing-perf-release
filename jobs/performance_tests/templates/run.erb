@@ -11,6 +11,7 @@ LATENCY_99=0
 NUM_OK="could not extract status codes of responses from summary"
 
 RPS_LOWER_LIMIT=<%= p("performance_tests.throughput_lower_limit") %>
+LATENCY_UPPER_LIMIT=<%= p("performance_tests.latency_upper_limit") %>
 TOTAL_REQUESTS=<%= p("performance_tests.num_requests") %>
 TOTAL_CONCURRENT=<%= p("performance_tests.concurrent_requests") %>
 URI=<%= p("performance_tests.protocol") %>://<%= p("performance_tests.address") %>:<%= p("performance_tests.port") %>
@@ -85,6 +86,14 @@ main() {
     echo "${RPS} requests per second is lower than threshold of ${RPS_LOWER_LIMIT}"
     exit 1
   fi
+
+  LATENCY_90_INT=`echo ${LATENCY_90}*10000 | bc -l | cut -f 1 -d "."`
+
+  if [[ ${LATENCY_90_INT} -ge ${LATENCY_UPPER_LIMIT} ]]; then
+  echo "The 90th percentile latency, ${LATENCY_90}, is higher than the threshold of ${LATENCY_UPPER_LIMIT}"
+    exit 1
+  fi
+
 }
 
 main

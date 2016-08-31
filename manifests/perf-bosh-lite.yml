@@ -87,6 +87,7 @@ instance_groups:
         num_requests: 5000
         concurrent_requests: 10
         throughput_lower_limit: 100
+        latency_upper_limit: 8
         router_tag: gorouter-bosh-lite
         datadog_api_key: DATADOG_API_KEY
 
@@ -111,6 +112,7 @@ instance_groups:
         num_requests: 5000
         concurrent_requests: 10
         throughput_lower_limit: 1000
+        latency_upper_limit: 8
         router_tag: tcp_router-bosh-lite
         datadog_api_key: DATADOG_API_KEY
 

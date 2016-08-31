@@ -85,9 +85,11 @@ instance_groups:
         port: 80
         protocol: http
         num_requests: 50000
-        concurrent_requests: 100
+        concurrent_requests: 2
         router_tag: gorouter
         datadog_api_key: DATADOG_API_KEY
+        throughput_lower_limit: 1000
+        latency_upper_limit: 8
 
 - name: tcp_performance_tests
   instances: 1
@@ -108,9 +110,11 @@ instance_groups:
         port: 60001
         protocol: http
         num_requests: 50000
-        concurrent_requests: 100
+        concurrent_requests: 2
         router_tag: tcp_router
         datadog_api_key: DATADOG_API_KEY
+        throughput_lower_limit: 3200
+        latency_upper_limit: 8
 
 update:
   canaries: 1
