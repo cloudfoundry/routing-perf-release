@@ -6,7 +6,7 @@ DIR=`dirname $0`
 
 <% p("performance_tests.routers").each do |router| %>
   tmpfile=$(mktemp)
-  ${DIR}/run_perf_test <%= router["address"] %> <%= router["tag"] %> > tmpfile &
+  ${DIR}/run_perf_test <%= router["address"] %> <%= router["tag"] %> > ${tmpfile} &
   PIDS="${PIDS} $!"
   TMPFILES="${TMPFILES} ${tmpfile}"
 <% end %>
