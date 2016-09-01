@@ -67,6 +67,8 @@ emit_datadog_metrics() {
     {\"metric\":\"performance.latency_99\",          \"points\":[[$currenttime, $latency99]], \"tags\":[\"deployment:$deployment\", \"router:${ROUTER}\", \"version:$version\"], \"type\":\"gauge\" }
     ]}" \
     'https://app.datadoghq.com/api/v1/series?api_key=<%=p("performance_tests.datadog_api_key") %>'
+
+  echo
 }
 
 main() {
