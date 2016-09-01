@@ -5,13 +5,19 @@ set -e
 DIR=`dirname $0`
 
 <% p("performance_tests.routers").each do |router| %>
-  ${DIR}/run_perf_test <%= router["address"] %> <%= router["tag"] %> &
+  tmpfile=$(mktemp)
+  ${DIR}/run_perf_test <%= router["address"] %> <%= router["tag"] %> > tmpfile &
   PIDS="${PIDS} $!"
+  TMPFILES="${TMPFILES} ${tmpfile}"
 <% end %>
 
 for PID in ${PIDS}; do
   wait ${PID}
   EXIT_STATUSES="${EXIT_STATUSES} $?"
+done
+
+for TMPFILE in ${TMPFILES}; do
+  cat $TMPFILE
 done
 
 for EXIT_STATUS in ${EXIT_STATUSES}; do

@@ -70,6 +70,7 @@ emit_datadog_metrics() {
 }
 
 main() {
+  echo "Performance test run for ${ROUTER} at ${URI}:"
   ensure_log_dir
   run_perf_tests
 
