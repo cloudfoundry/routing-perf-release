@@ -2,98 +2,20 @@
 
 set -e
 
-LOG_DIR=/var/vcap/sys/log/performance_tests
+DIR=`dirname $0`
 
-RPS=0
-LATENCY_90=0
-LATENCY_95=0
-LATENCY_99=0
-NUM_OK="could not extract status codes of responses from summary"
+<% p("performance_tests.routers").each do |router| %>
+  ${DIR}/run_perf_test <%= router["address"] %> <%= router["tag"] %> &
+  PIDS="${PIDS} $!"
+<% end %>
 
-RPS_LOWER_LIMIT=<%= p("performance_tests.throughput_lower_limit") %>
-LATENCY_UPPER_LIMIT=<%= p("performance_tests.latency_upper_limit") %>
-TOTAL_REQUESTS=<%= p("performance_tests.num_requests") %>
-TOTAL_CONCURRENT=<%= p("performance_tests.concurrent_requests") %>
-URI=<%= p("performance_tests.protocol") %>://<%= p("performance_tests.address") %>:<%= p("performance_tests.port") %>
+for PID in ${PIDS}; do
+  wait ${PID}
+  EXIT_STATUSES="${EXIT_STATUSES} $?"
+done
 
-ensure_log_dir() {
-  mkdir -p ${LOG_DIR}
-}
-
-run_perf_tests() {
-  date=$(date +%s)
-  num_loops=$((<%= p("performance_tests.num_requests") %>/<%=p("performance_tests.concurrent_requests")%>))
-
-  # run load test
-  echo "Starting load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
-  exec /var/vcap/packages/boom/bin/boom \
-    -n $TOTAL_REQUESTS \
-    -c $TOTAL_CONCURRENT \
-    -host "<%=p("performance_tests.host") %>" \
-    ${URI} | tee ${LOG_DIR}/loadtest_${date}.log
-  echo ""
-
-  # requests / sec
-  data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
-  RPS=${data//[[:blank:]]/}
-  echo "requests_per_sec: ${RPS}"
-
-  latencies=($(grep "90% in " -A 3 ${LOG_DIR}/loadtest_${date}.log | awk '{print $3}'))
-  LATENCY_90=${latencies[0]}
-  LATENCY_95=${latencies[1]}
-  LATENCY_99=${latencies[2]}
-  echo "90% of response times: ${LATENCY_90} secs"
-  echo "95% of response times: ${LATENCY_95} secs"
-  echo "99% of response times: ${LATENCY_99} secs"
-
-  NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/loadtest_${date}.log | awk '{ print $2 }')
-}
-
-emit_datadog_metrics() {
-  rps=$1
-  latency90=$2
-  latency95=$3
-  latency99=$4
-  currenttime=$(date +%s)
-  deployment=<%= spec.deployment %>
-  router=<%= p("performance_tests.router_tag") %>
-  version=<%= p("performance_tests.routing_release_version") %>
-
-  curl -X POST -H "Content-type: application/json" -d "
-    {\"series\": [
-      {\"metric\":\"performance.requests_per_second\", \"points\":[[$currenttime, $rps]],       \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" },
-      {\"metric\":\"performance.latency_90\",          \"points\":[[$currenttime, $latency90]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" },
-      {\"metric\":\"performance.latency_95\",          \"points\":[[$currenttime, $latency95]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" },
-      {\"metric\":\"performance.latency_99\",          \"points\":[[$currenttime, $latency99]], \"tags\":[\"deployment:$deployment\", \"router:$router\", \"version:$version\"], \"type\":\"gauge\" }
-    ]}" \
-    'https://app.datadoghq.com/api/v1/series?api_key=<%=p("performance_tests.datadog_api_key") %>'
-}
-
-main() {
-  ensure_log_dir
-  run_perf_tests
-
-  if [[ ${NUM_OK} != ${TOTAL_REQUESTS} ]]; then
-    echo "Performance tests generated HTTP error from router"
+for EXIT_STATUS in ${EXIT_STATUSES}; do
+  if [ ${EXIT_STATUS} -gt 0 ] ; then
     exit 1
   fi
-
-  emit_datadog_metrics ${RPS} ${LATENCY_90} ${LATENCY_95} ${LATENCY_99}
-
-  RPSINT=`echo ${RPS} | cut -f 1 -d "."`
-
-  if [[ ${RPSINT} -le ${RPS_LOWER_LIMIT} ]]; then
-    echo "${RPS} requests per second is lower than threshold of ${RPS_LOWER_LIMIT}"
-    exit 1
-  fi
-
-  LATENCY_90_INT=`echo - | awk "{print ${LATENCY_90} * 10000 }" | cut -f 1 -d "."`
-  LATENCY_UPPER_LIMIT_INT=`echo - | awk "{print ${LATENCY_UPPER_LIMIT} * 10 }" | cut -f 1 -d "."`
-  if [[ ${LATENCY_90_INT} -ge ${LATENCY_UPPER_LIMIT_INT} ]]; then
-  echo "The 90th percentile latency, ${LATENCY_90}, is higher than the threshold of ${LATENCY_UPPER_LIMIT}"
-    exit 1
-  fi
-
-}
-
-main
+done

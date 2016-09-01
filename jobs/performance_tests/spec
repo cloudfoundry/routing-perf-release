@@ -3,13 +3,17 @@ name: performance_tests
 
 templates:
   run.erb: bin/run
+  run_perf_test.erb: bin/run_perf_test
 
 packages:
   - boom
 
 properties:
-  performance_tests.address:
-    description: The address to run performance tests against
+  performance_tests.routers:
+    description: Array of router addresses and datadog tags to run performance tests against
+    example: |
+      - address: 10.10.8.8
+        tag: gorouter
   performance_tests.host:
     description: The host to specify in the 'Host:' header
   performance_tests.port:
@@ -24,8 +28,6 @@ properties:
     description: Lower limit for requests per second, the errand will fail if value is below this property
   performance_tests.latency_upper_limit:
     description: Upper limit for 90th percentile latency in milliseconds, the errand will fail if value is above this property
-  performance_tests.router_tag:
-    description: A tag to add to the datadog metric, e.g. gorouter, tcp_router
   performance_tests.routing_release_version:
     description: Version of the routing release the errand is being run against
     default: ""
