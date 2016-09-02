@@ -80,13 +80,14 @@ instance_groups:
     release: routing-perf
     properties:
       performance_tests:
-        address: GOROUTER_API_ADDRESS
+        routers:
+          - address: GOROUTER_API_ADDRESS
+            tag: gorouter
         host: gostatic-0.foo.com
         port: 80
         protocol: http
         num_requests: 50000
         concurrent_requests: 2
-        router_tag: gorouter
         datadog_api_key: DATADOG_API_KEY
         throughput_lower_limit: 1000
         latency_upper_limit: 8
@@ -105,13 +106,14 @@ instance_groups:
     release: routing-perf
     properties:
       performance_tests:
-        address: TCP_ROUTER_API_ADDRESS
+        routers:
+          - address: TCP_ROUTER_API_ADDRESS
+            tag: tcp_router
         host: tcp.bosh-lite.com
         port: 60001
         protocol: http
         num_requests: 50000
         concurrent_requests: 2
-        router_tag: tcp_router
         datadog_api_key: DATADOG_API_KEY
         throughput_lower_limit: 3200
         latency_upper_limit: 8
