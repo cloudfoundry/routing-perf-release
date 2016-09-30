@@ -87,7 +87,7 @@ main() {
 
   RPSINT=`echo ${RPS} | cut -f 1 -d "."`
 
-  if [[ ${RPSINT} -le ${RPS_LOWER_LIMIT} ]]; then
+  if [[ ${RPSINT} -lt ${RPS_LOWER_LIMIT} ]]; then
     echo "${RPS} requests per second is lower than threshold of ${RPS_LOWER_LIMIT}"
     exit 1
   fi
@@ -103,15 +103,15 @@ main() {
   LATENCY_95_MS=`echo - | awk "{print ${LATENCY_95} * 1000 }"`
   LATENCY_99_MS=`echo - | awk "{print ${LATENCY_99} * 1000 }"`
 
-  if [[ ${LATENCY_90_INT} -ge ${LATENCY_UPPER_LIMIT_90_INT} ]]; then
+  if [[ ${LATENCY_90_INT} -gt ${LATENCY_UPPER_LIMIT_90_INT} ]]; then
     echo "The 90th percentile latency, ${LATENCY_90_MS} ms, is higher than the threshold of ${LATENCY_UPPER_LIMIT_90} ms"
     exit 1
   fi
-  if [[ ${LATENCY_95_INT} -ge ${LATENCY_UPPER_LIMIT_95_INT} ]]; then
+  if [[ ${LATENCY_95_INT} -gt ${LATENCY_UPPER_LIMIT_95_INT} ]]; then
     echo "The 95th percentile latency, ${LATENCY_95_MS} ms, is higher than the threshold of ${LATENCY_UPPER_LIMIT_95} ms"
     exit 1
   fi
-  if [[ ${LATENCY_99_INT} -ge ${LATENCY_UPPER_LIMIT_99_INT} ]]; then
+  if [[ ${LATENCY_99_INT} -gt ${LATENCY_UPPER_LIMIT_99_INT} ]]; then
     echo "The 99th percentile latency, ${LATENCY_99_MS} ms, is higher than the threshold of ${LATENCY_UPPER_LIMIT_99} ms"
     exit 1
   fi
