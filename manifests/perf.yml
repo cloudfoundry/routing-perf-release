@@ -90,7 +90,9 @@ instance_groups:
         concurrent_requests: 2
         datadog_api_key: DATADOG_API_KEY
         throughput_lower_limit: 1000
-        latency_upper_limit: 8
+        latency_upper_limit_90: 8
+        latency_upper_limit_95: 10
+        latency_upper_limit_99: 11
 
 - name: tcp_performance_tests
   instances: 1
@@ -116,7 +118,9 @@ instance_groups:
         concurrent_requests: 2
         datadog_api_key: DATADOG_API_KEY
         throughput_lower_limit: 3200
-        latency_upper_limit: 8
+        latency_upper_limit_90: 8
+        latency_upper_limit_95: 10
+        latency_upper_limit_99: 11
 
 update:
   canaries: 1

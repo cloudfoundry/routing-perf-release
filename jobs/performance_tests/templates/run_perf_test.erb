@@ -29,7 +29,7 @@ run_perf_tests() {
 
   # run load test
   echo "Starting load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
-  exec /var/vcap/packages/boom/bin/boom \
+  exec /var/vcap/packages/hey/bin/hey \
     -n $TOTAL_REQUESTS \
     -c $TOTAL_CONCURRENT \
     -host "<%=p("performance_tests.host") %>" \

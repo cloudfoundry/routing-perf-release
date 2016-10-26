@@ -1,6 +1,6 @@
-[submodule "src/github.com/rakyll/boom"]
-	path = src/github.com/rakyll/boom
-	url = https://github.com/rakyll/boom.git
 [submodule "src/golang.org/x/net"]
 	path = src/golang.org/x/net
 	url = https://github.com/golang/net
+[submodule "src/github.com/rakyll/hey"]
+	path = src/github.com/rakyll/hey
+	url = https://github.com/rakyll/hey
