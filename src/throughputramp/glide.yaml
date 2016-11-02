@@ -1,0 +1,11 @@
+package: throughputramp
+import: []
+testImport:
+- package: github.com/onsi/ginkgo
+- package: github.com/onsi/gomega
+  subpackages:
+  - gbytes
+  - gexec
+- package: github.com/tedsuo/ifrit
+  subpackages:
+  - ginkgomon

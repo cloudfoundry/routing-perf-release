@@ -1,0 +1,49 @@
+hash: 420e65dbb8a3083dd2fe325230c9026224d24c6dd75f5cf04c804af95e7e55a3
+updated: 2016-11-02T12:07:41.606218006-07:00
+imports: []
+testImports:
+- name: github.com/onsi/ginkgo
+  version: a8ccd817611666211fdf6e6a752174a0db8374a8
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
+  - types
+- name: github.com/onsi/gomega
+  version: ff4bc6b6f9f5affa66635cd04d31d2a7ee21ffd6
+  subpackages:
+  - format
+  - gbytes
+  - gexec
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
+- name: github.com/tedsuo/ifrit
+  version: 6711154296c2b3fc5cd1932f0638c8ca0ce8a8a7
+  subpackages:
+  - ginkgomon
+- name: golang.org/x/sys
+  version: c200b10b5d5e122be351b67af224adc6128af5bf
+  subpackages:
+  - unix
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
