@@ -18,6 +18,9 @@ type pointsSortableByResponseTime []Point
 
 // Parse will take in an input CSV string and return a slice of data points
 func Parse(input string) ([]Point, error) {
+	if input == "" {
+		return nil, errors.New("empty input")
+	}
 	r := csv.NewReader(strings.NewReader(input))
 	records, err := r.ReadAll()
 	if err != nil {
@@ -25,7 +28,7 @@ func Parse(input string) ([]Point, error) {
 	}
 
 	header := records[0]
-	if header[0] != "start-time" && header[1] != "response-time" {
+	if len(header) < 2 || (header[0] != "start-time" && header[1] != "response-time") {
 		return nil, errors.New("csv headers not found")
 	}
 

@@ -26,8 +26,11 @@ var extraColumnInput string = `start-time,response-time,dummy-header
 var badHeadersInput string = `dummy-header,dummy-header-2
 2016-11-01T21:04:42.760279114Z,0.0280`
 
+var missingColumnInput string = `start-time
+2016-11-01T21:04:42.760279114Z`
+
 var badValuesInput string = `start-time,response-time
-2016-11-01T21:04:42.760279114Z,0.0280`
+2016-11-01T21:04:42.760279114Z`
 
 var _ = Describe("Data", func() {
 	Describe("Parse", func() {
@@ -65,10 +68,24 @@ var _ = Describe("Data", func() {
 			})
 		})
 
+		Context("when the input is missing a column", func() {
+			It("returns an error", func() {
+				_, err := data.Parse(missingColumnInput)
+				Expect(err).To(MatchError("csv headers not found"))
+			})
+		})
+
 		Context("when the input is badly formatted", func() {
 			It("returns an error", func() {
 				_, err := data.Parse(badValuesInput)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when the input is empty", func() {
+			It("returns an error", func() {
+				_, err := data.Parse("")
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
