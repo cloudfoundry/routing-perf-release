@@ -1,7 +1,11 @@
 hash: 420e65dbb8a3083dd2fe325230c9026224d24c6dd75f5cf04c804af95e7e55a3
-updated: 2016-11-02T12:07:41.606218006-07:00
+updated: 2016-11-02T14:15:47.851794417-07:00
 imports: []
 testImports:
+- name: github.com/golang/protobuf
+  version: 98fa357170587e470c5f27d3c3ea0947b71eb455
+  subpackages:
+  - proto
 - name: github.com/onsi/ginkgo
   version: a8ccd817611666211fdf6e6a752174a0db8374a8
   subpackages:
@@ -27,6 +31,7 @@ testImports:
   - format
   - gbytes
   - gexec
+  - ghttp
   - internal/assertion
   - internal/asyncassertion
   - internal/oraclematcher

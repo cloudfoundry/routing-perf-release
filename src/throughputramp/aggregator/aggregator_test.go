@@ -51,6 +51,14 @@ var _ = Describe("Aggregator", func() {
 				),
 			))
 		})
+
+		Context("when no data is passed in", func() {
+			It("returns an empty bucket", func() {
+				dataBuckets := aggregator.NewBuckets([]data.Point{}, time.Second)
+				Expect(dataBuckets.Value).To(BeEmpty())
+				Expect(dataBuckets.Summary()).To(BeEmpty())
+			})
+		})
 	})
 
 	Describe("Summary", func() {

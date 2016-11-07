@@ -25,6 +25,10 @@ func (p Point) MarshalJSON() ([]byte, error) {
 type Report []Point
 
 func NewBuckets(dataPoints []data.Point, interval time.Duration) *Buckets {
+	if len(dataPoints) == 0 {
+		return &Buckets{}
+	}
+
 	data.SortByStartTime(dataPoints)
 	dataBuckets := make(map[time.Time][]data.Point)
 

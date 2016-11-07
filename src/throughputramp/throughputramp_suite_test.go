@@ -26,7 +26,9 @@ func NewThroughputRamp(throughputRampPath string, args Args) *ginkgomon.Runner {
 type Args struct {
 	NumRequests        int
 	ConcurrentRequests int
-	RateLimit          int
+	StartRateLimit     int
+	EndRateLimit       int
+	RateLimitStep      int
 	URL                string
 }
 
@@ -34,8 +36,9 @@ func (args Args) ArgSlice() []string {
 	return []string{
 		"-n", strconv.Itoa(args.NumRequests),
 		"-c", strconv.Itoa(args.ConcurrentRequests),
-		"-q", strconv.Itoa(args.RateLimit),
-		"-o", "csv",
+		"--lower-throughput", strconv.Itoa(args.StartRateLimit),
+		"--upper-throughput", strconv.Itoa(args.EndRateLimit),
+		"--throughput-step", strconv.Itoa(args.RateLimitStep),
 		args.URL,
 	}
 }

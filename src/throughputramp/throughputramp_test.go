@@ -1,13 +1,12 @@
 package main_test
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
 )
@@ -16,21 +15,21 @@ var _ = Describe("Throughputramp", func() {
 	var (
 		runner     *ginkgomon.Runner
 		process    ifrit.Process
-		testServer *httptest.Server
+		testServer *ghttp.Server
 	)
 
 	Context("when correct arguments are used", func() {
 		BeforeEach(func() {
-			testServer = httptest.NewServer(
-				http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-					res.WriteHeader(http.StatusOK)
-				}),
-			)
+			testServer = ghttp.NewServer()
+			testServer.AllowUnhandledRequests = true
 
 			runner = NewThroughputRamp(binPath, Args{
 				NumRequests:        1,
 				ConcurrentRequests: 1,
-				URL:                testServer.URL,
+				StartRateLimit:     10,
+				EndRateLimit:       20,
+				RateLimitStep:      1,
+				URL:                testServer.URL(),
 			})
 		})
 
@@ -47,6 +46,12 @@ var _ = Describe("Throughputramp", func() {
 			<-process.Wait()
 			Expect(runner.ExitCode()).To(Equal(0))
 			Expect(runner.Buffer()).To(gbytes.Say(`\[\[.*\]\]`))
+		})
+
+		It("ramps up throughput over multiple tests", func() {
+			<-process.Wait()
+			Expect(runner.ExitCode()).To(Equal(0))
+			Expect(testServer.ReceivedRequests()).To(HaveLen(11))
 		})
 	})
 
