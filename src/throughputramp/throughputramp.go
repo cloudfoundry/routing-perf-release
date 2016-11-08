@@ -11,6 +11,7 @@ import (
 
 	"throughputramp/aggregator"
 	"throughputramp/data"
+	"throughputramp/plotgen"
 	"throughputramp/uploader"
 )
 
@@ -74,6 +75,20 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Fprintf(os.Stderr, "csv uploaded to %s\n", loc)
+
+	plotFile, err := plotgen.Generate(summary)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to generate plot: %s", err.Error())
+		os.Exit(1)
+	}
+	defer plotFile.Close()
+
+	loc, err = uploader.Upload(s3Config, plotFile, filename+".png")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stderr, "png uploaded to %s\n", loc)
 }
 
 func runBenchmark(url string, numRequests, concurrentRequests, rateLimit int) ([]data.Point, error) {
