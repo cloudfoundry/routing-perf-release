@@ -29,6 +29,7 @@ type Args struct {
 	StartRateLimit     int
 	EndRateLimit       int
 	RateLimitStep      int
+	Proxy              string
 	URL                string
 	Endpoint           string
 	BucketName         string
@@ -40,6 +41,7 @@ func (args Args) ArgSlice() []string {
 	return []string{
 		"-n", strconv.Itoa(args.NumRequests),
 		"-c", strconv.Itoa(args.ConcurrentRequests),
+		"-x", args.Proxy,
 		"-lower-throughput", strconv.Itoa(args.StartRateLimit),
 		"-upper-throughput", strconv.Itoa(args.EndRateLimit),
 		"-throughput-step", strconv.Itoa(args.RateLimitStep),

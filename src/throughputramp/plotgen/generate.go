@@ -1,5 +1,9 @@
 package plotgen
 
+/*
+*  Attributed to Adrian Cockroft, https://github.com/adrianco/headroom-plot
+ */
+
 const generate_r = `
 #!/usr/bin/env Rscript
 

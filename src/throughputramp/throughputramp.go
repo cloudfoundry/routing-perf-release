@@ -18,6 +18,7 @@ import (
 var (
 	numRequests        = flag.Int("n", 1000, "number of requests to send")
 	concurrentRequests = flag.Int("c", 10, "number of requests to send")
+	proxy              = flag.String("x", "", "proxy for request")
 	lowerThroughput    = flag.Int("lower-throughput", 50, "Starting throughput value")
 	upperThroughput    = flag.Int("upper-throughput", 200, "Ending throughput value")
 	throughputStep     = flag.Int("throughput-step", 50, "Throughput increase per run")
@@ -55,7 +56,7 @@ func main() {
 
 	var dataPoints []data.Point
 	for i := start; i <= end; i += step {
-		points, err := runBenchmark(url, *numRequests, *concurrentRequests, i)
+		points, err := runBenchmark(url, *proxy, *numRequests, *concurrentRequests, i)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 			os.Exit(1)
@@ -91,9 +92,10 @@ func main() {
 	fmt.Fprintf(os.Stderr, "png uploaded to %s\n", loc)
 }
 
-func runBenchmark(url string, numRequests, concurrentRequests, rateLimit int) ([]data.Point, error) {
+func runBenchmark(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]data.Point, error) {
 	fmt.Fprintf(os.Stderr, "Running benchmark with %d requests, %d concurrency, and %d throughput\n", numRequests, concurrentRequests, rateLimit)
 	args := []string{
+		"-x", proxy,
 		"-n", strconv.Itoa(numRequests),
 		"-c", strconv.Itoa(concurrentRequests),
 		"-q", strconv.Itoa(rateLimit),

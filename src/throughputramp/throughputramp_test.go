@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,14 +24,23 @@ var _ = Describe("Throughputramp", func() {
 
 	Context("when correct arguments are used", func() {
 		BeforeEach(func() {
+			url := "http://example.com"
+
 			testServer = ghttp.NewServer()
+			handler := ghttp.CombineHandlers(
+				func(rw http.ResponseWriter, req *http.Request) {
+					Expect(req.Host).To(Equal(strings.TrimPrefix(url, "http://")))
+				},
+				ghttp.RespondWith(http.StatusOK, nil),
+			)
+			testServer.AppendHandlers(handler)
 			testServer.AllowUnhandledRequests = true
 
 			bodyChan = make(chan []byte, 2)
 			bucketName := "blah-bucket"
 
 			testS3Server = ghttp.NewServer()
-			handler := ghttp.CombineHandlers(
+			handler = ghttp.CombineHandlers(
 				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
 				func(rw http.ResponseWriter, req *http.Request) {
 					defer GinkgoRecover()
@@ -49,7 +59,8 @@ var _ = Describe("Throughputramp", func() {
 				StartRateLimit:     10,
 				EndRateLimit:       20,
 				RateLimitStep:      1,
-				URL:                testServer.URL(),
+				Proxy:              testServer.URL(),
+				URL:                url,
 				BucketName:         bucketName,
 				Endpoint:           testS3Server.URL(),
 				AccessKeyID:        "ABCD",
