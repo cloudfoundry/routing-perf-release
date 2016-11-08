@@ -1,7 +1,7 @@
 package aggregator
 
 import (
-	"encoding/json"
+	"fmt"
 	"throughputramp/data"
 	"time"
 )
@@ -16,13 +16,19 @@ type Point struct {
 	Latency    time.Duration
 }
 
-var _ json.Marshaler = Point{}
-
-func (p Point) MarshalJSON() ([]byte, error) {
-	return json.Marshal([]float64{p.Throughput, p.Latency.Seconds()})
+func (p Point) String() string {
+	return fmt.Sprintf("%f,%f", p.Throughput, p.Latency.Seconds())
 }
 
 type Report []Point
+
+func (r Report) GenerateCSV() string {
+	csv := "throughput,latency"
+	for _, p := range r {
+		csv += "\n" + p.String()
+	}
+	return csv
+}
 
 func NewBuckets(dataPoints []data.Point, interval time.Duration) *Buckets {
 	if len(dataPoints) == 0 {

@@ -1,15 +1,17 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
+
 	"throughputramp/aggregator"
 	"throughputramp/data"
-	"time"
+	"throughputramp/uploader"
 )
 
 var (
@@ -18,11 +20,29 @@ var (
 	lowerThroughput    = flag.Int("lower-throughput", 50, "Starting throughput value")
 	upperThroughput    = flag.Int("upper-throughput", 200, "Ending throughput value")
 	throughputStep     = flag.Int("throughput-step", 50, "Throughput increase per run")
+	s3Endpoint         = flag.String("s3-endpoint", "", "The endpoint for the S3 service to which plots will be uploaded.")
+	s3Region           = flag.String("s3-region", "", "The region for the S3 service to which plots will be uploaded. If provided, endpoint is ignored.")
+	bucketName         = flag.String("bucket-name", "", "Name of the bucket to which plots will be uploaded.")
+	accessKeyID        = flag.String("access-key-id", "", "AccessKeyID for the S3 service.")
+	secretAccessKey    = flag.String("secret-access-key", "", "SecretAccessKey for the S3 service.")
 )
 
 func main() {
 	flag.Parse()
 	if flag.NArg() < 1 {
+		usageAndExit()
+	}
+
+	s3Config := &uploader.Config{
+		Endpoint:        *s3Endpoint,
+		AwsRegion:       *s3Region,
+		BucketName:      *bucketName,
+		AccessKeyID:     *accessKeyID,
+		SecretAccessKey: *secretAccessKey,
+	}
+	err := s3Config.Validate()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "s3 config error: %s\n", err.Error())
 		usageAndExit()
 	}
 
@@ -44,12 +64,16 @@ func main() {
 	}
 
 	buckets := aggregator.NewBuckets(dataPoints, time.Second)
-	report, err := json.Marshal(buckets.Summary())
+	summary := buckets.Summary()
+
+	filename := time.Now().UTC().Format(time.RFC3339)
+
+	loc, err := uploader.Upload(s3Config, bytes.NewBufferString(summary.GenerateCSV()), filename+".csv")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "report marshaling error: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(string(report))
+	fmt.Fprintf(os.Stderr, "csv uploaded to %s\n", loc)
 }
 
 func runBenchmark(url string, numRequests, concurrentRequests, rateLimit int) ([]data.Point, error) {

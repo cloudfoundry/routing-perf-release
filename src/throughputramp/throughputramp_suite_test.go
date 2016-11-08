@@ -30,15 +30,24 @@ type Args struct {
 	EndRateLimit       int
 	RateLimitStep      int
 	URL                string
+	Endpoint           string
+	BucketName         string
+	AccessKeyID        string
+	SecretAccessKey    string
 }
 
 func (args Args) ArgSlice() []string {
 	return []string{
 		"-n", strconv.Itoa(args.NumRequests),
 		"-c", strconv.Itoa(args.ConcurrentRequests),
-		"--lower-throughput", strconv.Itoa(args.StartRateLimit),
-		"--upper-throughput", strconv.Itoa(args.EndRateLimit),
-		"--throughput-step", strconv.Itoa(args.RateLimitStep),
+		"-lower-throughput", strconv.Itoa(args.StartRateLimit),
+		"-upper-throughput", strconv.Itoa(args.EndRateLimit),
+		"-throughput-step", strconv.Itoa(args.RateLimitStep),
+		"-throughput-step", strconv.Itoa(args.RateLimitStep),
+		"-s3-endpoint", args.Endpoint,
+		"-bucket-name", args.BucketName,
+		"-access-key-id", args.AccessKeyID,
+		"-secret-access-key", args.SecretAccessKey,
 		args.URL,
 	}
 }

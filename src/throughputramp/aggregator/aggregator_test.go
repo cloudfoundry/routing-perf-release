@@ -80,4 +80,23 @@ var _ = Describe("Aggregator", func() {
 			))
 		})
 	})
+
+	Describe("GenerateCSV", func() {
+		It("returns the data in a CSV format", func() {
+			report := aggregator.Report{
+				aggregator.Point{Throughput: 1, Latency: time.Duration(10000000)},
+				aggregator.Point{Throughput: 2, Latency: time.Duration(20000000)},
+				aggregator.Point{Throughput: 3, Latency: time.Duration(30000000)},
+				aggregator.Point{Throughput: 4, Latency: time.Duration(40000000)},
+				aggregator.Point{Throughput: 5, Latency: time.Duration(50000000)},
+			}
+			csv := report.GenerateCSV()
+			Expect(csv).To(ContainSubstring("throughput,latency\n"))
+			Expect(csv).To(MatchRegexp(`(?m:^1\.0*,0\.010*$)`))
+			Expect(csv).To(MatchRegexp(`(?m:^2\.0*,0\.020*$)`))
+			Expect(csv).To(MatchRegexp(`(?m:^3\.0*,0\.030*$)`))
+			Expect(csv).To(MatchRegexp(`(?m:^4\.0*,0\.040*$)`))
+			Expect(csv).To(MatchRegexp(`(?m:^5\.0*,0\.050*$)`))
+		})
+	})
 })

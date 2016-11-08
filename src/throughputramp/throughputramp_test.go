@@ -1,11 +1,12 @@
 package main_test
 
 import (
+	"io/ioutil"
+	"net/http"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/ghttp"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
@@ -13,15 +14,33 @@ import (
 
 var _ = Describe("Throughputramp", func() {
 	var (
-		runner     *ginkgomon.Runner
-		process    ifrit.Process
-		testServer *ghttp.Server
+		runner       *ginkgomon.Runner
+		process      ifrit.Process
+		testServer   *ghttp.Server
+		testS3Server *ghttp.Server
+		bodyChan     chan []byte
 	)
 
 	Context("when correct arguments are used", func() {
 		BeforeEach(func() {
 			testServer = ghttp.NewServer()
 			testServer.AllowUnhandledRequests = true
+
+			bodyChan = make(chan []byte, 2)
+			bucketName := "blah-bucket"
+
+			testS3Server = ghttp.NewServer()
+			testS3Server.AppendHandlers(ghttp.CombineHandlers(
+				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
+				func(rw http.ResponseWriter, req *http.Request) {
+					defer GinkgoRecover()
+					defer req.Body.Close()
+					bodyBytes, err := ioutil.ReadAll(req.Body)
+					Expect(err).ToNot(HaveOccurred())
+					bodyChan <- bodyBytes
+				},
+				ghttp.RespondWith(http.StatusOK, nil),
+			))
 
 			runner = NewThroughputRamp(binPath, Args{
 				NumRequests:        1,
@@ -30,6 +49,10 @@ var _ = Describe("Throughputramp", func() {
 				EndRateLimit:       20,
 				RateLimitStep:      1,
 				URL:                testServer.URL(),
+				BucketName:         bucketName,
+				Endpoint:           testS3Server.URL(),
+				AccessKeyID:        "ABCD",
+				SecretAccessKey:    "ABCD",
 			})
 		})
 
@@ -40,18 +63,24 @@ var _ = Describe("Throughputramp", func() {
 		AfterEach(func() {
 			ginkgomon.Interrupt(process)
 			testServer.Close()
-		})
-
-		It("prints throughput/latency data points", func() {
-			<-process.Wait()
-			Expect(runner.ExitCode()).To(Equal(0))
-			Expect(runner.Buffer()).To(gbytes.Say(`\[\[.*\]\]`))
+			testS3Server.Close()
+			close(bodyChan)
 		})
 
 		It("ramps up throughput over multiple tests", func() {
-			<-process.Wait()
+			Eventually(process.Wait(), "5s").Should(Receive())
 			Expect(runner.ExitCode()).To(Equal(0))
 			Expect(testServer.ReceivedRequests()).To(HaveLen(11))
+		})
+
+		It("sends the csv and plot to the s3 bucket", func() {
+			Eventually(process.Wait(), "5s").Should(Receive())
+			Expect(runner.ExitCode()).To(Equal(0))
+
+			var csvBytes []byte
+			Eventually(bodyChan).Should(Receive(&csvBytes))
+			Expect(csvBytes).ToNot(BeEmpty())
+			Expect(string(csvBytes)).To(ContainSubstring("throughput,latency\n"))
 		})
 	})
 
@@ -63,7 +92,20 @@ var _ = Describe("Throughputramp", func() {
 
 		It("exits 1 with usage", func() {
 			process := ifrit.Background(runner)
-			<-process.Wait()
+			Eventually(process.Wait()).Should(Receive())
+			Expect(runner.ExitCode()).To(Equal(1))
+		})
+	})
+
+	Context("when the s3 config is not valid", func() {
+		BeforeEach(func() {
+			runner = NewThroughputRamp(binPath, Args{})
+			runner.Command = exec.Command(binPath, "http://example.com")
+		})
+
+		It("exits 1 with usage", func() {
+			process := ifrit.Background(runner)
+			Eventually(process.Wait()).Should(Receive())
 			Expect(runner.ExitCode()).To(Equal(1))
 		})
 	})
