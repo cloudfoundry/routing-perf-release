@@ -3,4 +3,4 @@
 	url = https://github.com/golang/net
 [submodule "src/github.com/rakyll/hey"]
 	path = src/github.com/rakyll/hey
-	url = https://github.com/rakyll/hey
+	url = https://github.com/cf-routing/hey
