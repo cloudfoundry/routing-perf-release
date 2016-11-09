@@ -32,7 +32,7 @@ func Generate(r aggregator.Report) (io.ReadCloser, error) {
 
 	plotFileName := fmt.Sprintf("%s/plot.png%d", os.TempDir(), rand.Int())
 
-	cmd := exec.Command("rscript", rscriptFile, csvFile.Name(), plotFileName)
+	cmd := exec.Command("Rscript", rscriptFile, csvFile.Name(), plotFileName)
 
 	cmdOut, err := cmd.CombinedOutput()
 	if err != nil {
