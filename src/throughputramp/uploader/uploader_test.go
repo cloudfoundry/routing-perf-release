@@ -82,31 +82,19 @@ var _ = Describe("Uploader", func() {
 			testS3Server *ghttp.Server
 			bucketName   string
 			fileName     string
-			bodyChan     chan []byte
 			uploadConfig *uploader.Config
+			file         *bytes.Buffer
 		)
 
 		BeforeEach(func() {
-			bodyChan = make(chan []byte, 1)
-			fileName = "testfile.txt"
-			bucketName = "blah-bucket"
-
 			testS3Server = ghttp.NewServer()
 			testS3Server.AppendHandlers(ghttp.RespondWith(http.StatusBadGateway, "error-uploading"))
 			testS3Server.AppendHandlers(ghttp.RespondWith(http.StatusBadGateway, "error-uploading"))
 			testS3Server.AppendHandlers(ghttp.RespondWith(http.StatusBadGateway, "error-uploading"))
-			testS3Server.AppendHandlers(ghttp.CombineHandlers(
-				ghttp.VerifyRequest("PUT", "/"+bucketName+"/"+fileName),
-				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
-				func(rw http.ResponseWriter, req *http.Request) {
-					defer GinkgoRecover()
-					defer req.Body.Close()
-					bodyBytes, err := ioutil.ReadAll(req.Body)
-					Expect(err).ToNot(HaveOccurred())
-					bodyChan <- bodyBytes
-				},
-				ghttp.RespondWith(http.StatusOK, nil),
-			))
+
+			fileName = "testfile"
+			bucketName = "blah-bucket"
+			file = bytes.NewBufferString("test body")
 
 			uploadConfig = &uploader.Config{
 				BucketName:      bucketName,
@@ -118,17 +106,49 @@ var _ = Describe("Uploader", func() {
 
 		AfterEach(func() {
 			testS3Server.Close()
-			close(bodyChan)
 		})
 
-		It("can upload a publicly-readable file S3 with retries", func() {
-			file := bytes.NewBufferString("test body")
-			dest, err := uploader.Upload(uploadConfig, file, fileName)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(dest).To(Equal(testS3Server.URL() + "/" + bucketName + "/" + fileName))
-			var bodyBytes []byte
-			Eventually(bodyChan).Should(Receive(&bodyBytes))
-			Expect(string(bodyBytes)).To(Equal("test body"))
+		Context("with no content type specified", func() {
+			var (
+				bodyChan chan []byte
+			)
+			BeforeEach(func() {
+				bodyChan = make(chan []byte, 1)
+				testS3Server.AppendHandlers(ghttp.CombineHandlers(
+					ghttp.VerifyRequest("PUT", "/"+bucketName+"/"+fileName),
+					ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
+					func(rw http.ResponseWriter, req *http.Request) {
+						defer GinkgoRecover()
+						defer req.Body.Close()
+						bodyBytes, err := ioutil.ReadAll(req.Body)
+						Expect(err).ToNot(HaveOccurred())
+						bodyChan <- bodyBytes
+					},
+					ghttp.RespondWith(http.StatusOK, nil),
+				))
+			})
+			AfterEach(func() {
+				close(bodyChan)
+			})
+			It("can upload a publicly-readable file S3 with retries", func() {
+				dest, err := uploader.Upload(uploadConfig, file, fileName, false)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(dest).To(Equal(testS3Server.URL() + "/" + bucketName + "/" + fileName))
+				var bodyBytes []byte
+				Eventually(bodyChan).Should(Receive(&bodyBytes))
+				Expect(string(bodyBytes)).To(Equal("test body"))
+			})
+		})
+		Context("with a content type specified", func() {
+			BeforeEach(func() {
+				testS3Server.AppendHandlers(ghttp.VerifyContentType("image/png"))
+			})
+			It("can upload a publicly-readable file S3 with retries", func() {
+				dest, err := uploader.Upload(uploadConfig, file, fileName, true)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(dest).To(Equal(testS3Server.URL() + "/" + bucketName + "/" + fileName))
+			})
+
 		})
 	})
 })

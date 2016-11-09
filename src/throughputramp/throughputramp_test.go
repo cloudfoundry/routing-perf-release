@@ -40,7 +40,8 @@ var _ = Describe("Throughputramp", func() {
 			bucketName := "blah-bucket"
 
 			testS3Server = ghttp.NewServer()
-			handler = ghttp.CombineHandlers(
+
+			testHandlers := []http.HandlerFunc{
 				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
 				func(rw http.ResponseWriter, req *http.Request) {
 					defer GinkgoRecover()
@@ -50,8 +51,11 @@ var _ = Describe("Throughputramp", func() {
 					bodyChan <- bodyBytes
 				},
 				ghttp.RespondWith(http.StatusOK, nil),
+			}
+			testS3Server.AppendHandlers(
+				ghttp.CombineHandlers(testHandlers...),
+				ghttp.CombineHandlers(append([]http.HandlerFunc{ghttp.VerifyContentType("image/png")}, testHandlers...)...),
 			)
-			testS3Server.AppendHandlers(handler, handler)
 
 			runner = NewThroughputRamp(binPath, Args{
 				NumRequests:        1,

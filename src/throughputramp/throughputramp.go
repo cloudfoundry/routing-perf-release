@@ -71,7 +71,7 @@ func main() {
 
 	filename := time.Now().UTC().Format(time.RFC3339)
 
-	loc, err := uploader.Upload(s3Config, bytes.NewBufferString(summary.GenerateCSV()), filename+".csv")
+	loc, err := uploader.Upload(s3Config, bytes.NewBufferString(summary.GenerateCSV()), filename+".csv", false)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
 		os.Exit(1)
@@ -85,7 +85,7 @@ func main() {
 	}
 	defer plotFile.Close()
 
-	loc, err = uploader.Upload(s3Config, plotFile, filename+".png")
+	loc, err = uploader.Upload(s3Config, plotFile, filename+".png", true)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
 		os.Exit(1)
