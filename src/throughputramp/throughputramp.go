@@ -19,6 +19,7 @@ var (
 	numRequests        = flag.Int("n", 1000, "number of requests to send")
 	concurrentRequests = flag.Int("c", 10, "number of requests to send")
 	proxy              = flag.String("x", "", "proxy for request")
+	interval           = flag.Int("i", 1, "interval in seconds to average throughput")
 	lowerThroughput    = flag.Int("lower-throughput", 50, "Starting throughput value")
 	upperThroughput    = flag.Int("upper-throughput", 200, "Ending throughput value")
 	throughputStep     = flag.Int("throughput-step", 50, "Throughput increase per run")
@@ -65,7 +66,7 @@ func main() {
 		dataPoints = append(dataPoints, points...)
 	}
 
-	buckets := aggregator.NewBuckets(dataPoints, time.Second)
+	buckets := aggregator.NewBuckets(dataPoints, time.Duration(*interval)*time.Second)
 	summary := buckets.Summary()
 
 	filename := time.Now().UTC().Format(time.RFC3339)
@@ -93,7 +94,7 @@ func main() {
 }
 
 func runBenchmark(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]data.Point, error) {
-	fmt.Fprintf(os.Stderr, "Running benchmark with %d requests, %d concurrency, and %d throughput\n", numRequests, concurrentRequests, rateLimit)
+	fmt.Fprintf(os.Stderr, "Running benchmark with %d requests, %d concurrency, and %d rate limit\n", numRequests, concurrentRequests, rateLimit)
 	args := []string{
 		"-x", proxy,
 		"-n", strconv.Itoa(numRequests),

@@ -41,19 +41,20 @@ func NewBuckets(dataPoints []data.Point, interval time.Duration) *Buckets {
 	startTime := dataPoints[0].StartTime
 	currentBucketTime := startTime
 	nextBucketTime := startTime.Add(interval)
+
 	for _, dp := range dataPoints {
 		for dp.StartTime.After(nextBucketTime) {
 			currentBucketTime = nextBucketTime
 			nextBucketTime = currentBucketTime.Add(interval)
 		}
 		dataBuckets[currentBucketTime] = append(dataBuckets[currentBucketTime], dp)
-
 	}
 	return &Buckets{Value: dataBuckets, interval: interval}
 }
 
 func (b Buckets) Summary() Report {
 	var report Report
+
 	for _, points := range b.Value {
 		for _, dataPoint := range points {
 			report = append(report, Point{
