@@ -35,7 +35,7 @@ func NewBuckets(dataPoints []data.Point, interval time.Duration) *Buckets {
 		return &Buckets{}
 	}
 
-	data.SortByStartTime(dataPoints)
+	data.Sort(dataPoints)
 	dataBuckets := make(map[time.Time][]data.Point)
 
 	startTime := dataPoints[0].StartTime

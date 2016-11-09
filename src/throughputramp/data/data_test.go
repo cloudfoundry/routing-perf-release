@@ -90,7 +90,7 @@ var _ = Describe("Data", func() {
 		})
 	})
 
-	Describe("SortByStartTime", func() {
+	Describe("Sort", func() {
 		It("sorts the data by start time", func() {
 			dataPoints := []data.Point{
 				data.Point{time.Unix(1478020922, 270882000), time.Duration(19100000)},
@@ -99,33 +99,13 @@ var _ = Describe("Data", func() {
 				data.Point{time.Unix(1478020922, 270864000), time.Duration(19900000)},
 			}
 
-			data.SortByStartTime(dataPoints)
+			data.Sort(dataPoints)
 
 			Expect(dataPoints).To(Equal([]data.Point{
 				data.Point{time.Unix(1478020922, 270864000), time.Duration(19900000)},
 				data.Point{time.Unix(1478020922, 270882000), time.Duration(19100000)},
 				data.Point{time.Unix(1478020922, 288598000), time.Duration(6300000)},
 				data.Point{time.Unix(1478020923, 0), time.Duration(10000000)},
-			}))
-		})
-	})
-
-	Describe("SortByResponseTime", func() {
-		It("sorts the data by response time", func() {
-			dataPoints := []data.Point{
-				data.Point{time.Unix(1478020922, 270882000), time.Duration(19100000)},
-				data.Point{time.Unix(1478020922, 288598000), time.Duration(6300000)},
-				data.Point{time.Unix(1478020923, 0), time.Duration(10000000)},
-				data.Point{time.Unix(1478020922, 270864000), time.Duration(19900000)},
-			}
-
-			data.SortByResponseTime(dataPoints)
-
-			Expect(dataPoints).To(Equal([]data.Point{
-				data.Point{time.Unix(1478020922, 288598000), time.Duration(6300000)},
-				data.Point{time.Unix(1478020923, 0), time.Duration(10000000)},
-				data.Point{time.Unix(1478020922, 270882000), time.Duration(19100000)},
-				data.Point{time.Unix(1478020922, 270864000), time.Duration(19900000)},
 			}))
 		})
 	})
