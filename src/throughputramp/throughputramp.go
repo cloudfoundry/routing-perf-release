@@ -55,7 +55,7 @@ func main() {
 	end := *upperThroughput
 	step := *throughputStep
 
-	var dataPoints []data.Point
+	var dataPoints []*data.Point
 	for i := start; i <= end; i += step {
 		points, err := runBenchmark(url, *proxy, *numRequests, *concurrentRequests, i)
 		if err != nil {
@@ -71,14 +71,16 @@ func main() {
 
 	filename := time.Now().UTC().Format(time.RFC3339)
 
-	loc, err := uploader.Upload(s3Config, bytes.NewBufferString(summary.GenerateCSV()), filename+".csv", false)
+	csvData := summary.GenerateCSV()
+	loc, err := uploader.Upload(s3Config, bytes.NewBuffer(csvData), filename+".csv", false)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
 		os.Exit(1)
 	}
 	fmt.Fprintf(os.Stderr, "csv uploaded to %s\n", loc)
 
-	plotFile, err := plotgen.Generate(summary)
+	fmt.Fprintln(os.Stderr, "Generating plot from csv data")
+	plotFile, err := plotgen.Generate(csvData)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to generate plot: %s", err.Error())
 		os.Exit(1)
@@ -93,7 +95,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "png uploaded to %s\n", loc)
 }
 
-func runBenchmark(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]data.Point, error) {
+func runBenchmark(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]*data.Point, error) {
 	fmt.Fprintf(os.Stderr, "Running benchmark with %d requests, %d concurrency, and %d rate limit\n", numRequests, concurrentRequests, rateLimit)
 	args := []string{
 		"-x", proxy,

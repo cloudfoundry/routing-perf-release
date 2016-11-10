@@ -13,10 +13,10 @@ type Point struct {
 	ResponseTime time.Duration
 }
 
-type points []Point
+type points []*Point
 
 // Parse will take in an input CSV string and return a slice of data points
-func Parse(input string) ([]Point, error) {
+func Parse(input string) ([]*Point, error) {
 	if input == "" {
 		return nil, errors.New("empty input")
 	}
@@ -34,8 +34,8 @@ func Parse(input string) ([]Point, error) {
 	return fillDataPoints(records)
 }
 
-func fillDataPoints(records [][]string) ([]Point, error) {
-	var dataPoints []Point
+func fillDataPoints(records [][]string) ([]*Point, error) {
+	var dataPoints []*Point
 	for _, record := range records[1:] {
 		startTime, err := time.Parse(time.RFC3339Nano, record[0])
 		if err != nil {
@@ -45,13 +45,13 @@ func fillDataPoints(records [][]string) ([]Point, error) {
 		if err != nil {
 			return nil, err
 		}
-		dataPoints = append(dataPoints, Point{StartTime: startTime, ResponseTime: responseTime})
+		dataPoints = append(dataPoints, &Point{StartTime: startTime, ResponseTime: responseTime})
 	}
 	return dataPoints, nil
 }
 
 // Sort will sort the records in place by StartTime
-func Sort(records []Point) {
+func Sort(records []*Point) {
 	sort.Sort(points(records))
 }
 

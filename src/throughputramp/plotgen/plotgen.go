@@ -7,10 +7,9 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"throughputramp/aggregator"
 )
 
-func Generate(r aggregator.Report) (io.ReadCloser, error) {
+func Generate(csv []byte) (io.ReadCloser, error) {
 	rscriptFile, err := createGeneratorRscript()
 	if err != nil {
 		return nil, err
@@ -21,7 +20,7 @@ func Generate(r aggregator.Report) (io.ReadCloser, error) {
 		return nil, fmt.Errorf("Failed to create temp file data.csv: %s", err.Error())
 	}
 
-	_, err = csvFile.Write([]byte(r.GenerateCSV()))
+	_, err = csvFile.Write(csv)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to write to temp file data.csv: %s", err.Error())
 	}

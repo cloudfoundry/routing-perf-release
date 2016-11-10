@@ -16,7 +16,7 @@ var _ = Describe("Plotgen", func() {
 	Describe("Generate", func() {
 		It("returns a valid PNG plot", func() {
 			points := testData(10)
-			plotReader, err := plotgen.Generate(points)
+			plotReader, err := plotgen.Generate(points.GenerateCSV())
 			Expect(err).NotTo(HaveOccurred())
 			defer plotReader.Close()
 
@@ -28,7 +28,7 @@ var _ = Describe("Plotgen", func() {
 	})
 })
 
-func testData(entry int) []aggregator.Point {
+func testData(entry int) aggregator.Report {
 	var points aggregator.Report
 	for i := 0; i <= entry; i++ {
 		throughput := rand.Intn(100-50) + 50

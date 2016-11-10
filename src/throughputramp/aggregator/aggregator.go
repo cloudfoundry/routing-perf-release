@@ -1,13 +1,14 @@
 package aggregator
 
 import (
-	"fmt"
+	"bytes"
+	"strconv"
 	"throughputramp/data"
 	"time"
 )
 
 type Buckets struct {
-	Value    map[time.Time][]data.Point
+	Value    map[time.Time][]*data.Point
 	interval time.Duration
 }
 
@@ -16,27 +17,29 @@ type Point struct {
 	Latency    time.Duration
 }
 
-func (p Point) String() string {
-	return fmt.Sprintf("%f,%f", p.Throughput, p.Latency.Seconds())
+func (p *Point) String() string {
+	return strconv.FormatFloat(p.Throughput, 'f', -1, 64) + "," + strconv.FormatFloat(p.Latency.Seconds(), 'f', 6, 64)
 }
 
 type Report []Point
 
-func (r Report) GenerateCSV() string {
-	csv := "throughput,latency"
+func (r Report) GenerateCSV() []byte {
+	buf := bytes.NewBuffer(nil)
+	buf.WriteString("throughput,latency")
 	for _, p := range r {
-		csv += "\n" + p.String()
+		buf.WriteByte('\n')
+		buf.WriteString(p.String())
 	}
-	return csv
+	return buf.Bytes()
 }
 
-func NewBuckets(dataPoints []data.Point, interval time.Duration) *Buckets {
+func NewBuckets(dataPoints []*data.Point, interval time.Duration) *Buckets {
 	if len(dataPoints) == 0 {
 		return &Buckets{}
 	}
 
 	data.Sort(dataPoints)
-	dataBuckets := make(map[time.Time][]data.Point)
+	dataBuckets := make(map[time.Time][]*data.Point)
 
 	startTime := dataPoints[0].StartTime
 	currentBucketTime := startTime
