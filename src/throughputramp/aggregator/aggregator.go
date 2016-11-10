@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-type Buckets struct {
-	Value    map[time.Time][]*data.Point
+type Aggregator struct {
+	buckets  [][]*data.Point
 	interval time.Duration
 }
 
@@ -33,35 +33,39 @@ func (r Report) GenerateCSV() []byte {
 	return buf.Bytes()
 }
 
-func NewBuckets(dataPoints []*data.Point, interval time.Duration) *Buckets {
+func New(dataPoints []*data.Point, interval time.Duration) *Aggregator {
 	if len(dataPoints) == 0 {
-		return &Buckets{}
+		return &Aggregator{}
 	}
 
 	data.Sort(dataPoints)
-	dataBuckets := make(map[time.Time][]*data.Point)
+	buckets := [][]*data.Point{}
 
 	startTime := dataPoints[0].StartTime
 	currentBucketTime := startTime
 	nextBucketTime := startTime.Add(interval)
+	bucketIndex := 0
+	buckets = append(buckets, nil)
 
 	for _, dp := range dataPoints {
 		for dp.StartTime.After(nextBucketTime) {
 			currentBucketTime = nextBucketTime
+			bucketIndex += 1
+			buckets = append(buckets, nil)
 			nextBucketTime = currentBucketTime.Add(interval)
 		}
-		dataBuckets[currentBucketTime] = append(dataBuckets[currentBucketTime], dp)
+		buckets[bucketIndex] = append(buckets[bucketIndex], dp)
 	}
-	return &Buckets{Value: dataBuckets, interval: interval}
+	return &Aggregator{buckets: buckets, interval: interval}
 }
 
-func (b Buckets) Summary() Report {
+func (a *Aggregator) Data() Report {
 	var report Report
 
-	for _, points := range b.Value {
+	for _, points := range a.buckets {
 		for _, dataPoint := range points {
 			report = append(report, Point{
-				Throughput: float64(len(points)) / b.interval.Seconds(),
+				Throughput: float64(len(points)) / a.interval.Seconds(),
 				Latency:    dataPoint.ResponseTime,
 			})
 		}

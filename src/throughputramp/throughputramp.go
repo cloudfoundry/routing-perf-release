@@ -66,12 +66,12 @@ func main() {
 		dataPoints = append(dataPoints, points...)
 	}
 
-	buckets := aggregator.NewBuckets(dataPoints, time.Duration(*interval)*time.Second)
-	summary := buckets.Summary()
+	ag := aggregator.New(dataPoints, time.Duration(*interval)*time.Second)
+	report := ag.Data()
 
 	filename := time.Now().UTC().Format(time.RFC3339)
 
-	csvData := summary.GenerateCSV()
+	csvData := report.GenerateCSV()
 	loc, err := uploader.Upload(s3Config, bytes.NewBuffer(csvData), filename+".csv", false)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
