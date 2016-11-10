@@ -58,17 +58,17 @@ var _ = Describe("Throughputramp", func() {
 			)
 
 			runner = NewThroughputRamp(binPath, Args{
-				NumRequests:        1,
-				ConcurrentRequests: 1,
-				StartRateLimit:     10,
-				EndRateLimit:       20,
-				RateLimitStep:      1,
-				Proxy:              testServer.URL(),
-				URL:                url,
-				BucketName:         bucketName,
-				Endpoint:           testS3Server.URL(),
-				AccessKeyID:        "ABCD",
-				SecretAccessKey:    "ABCD",
+				NumRequests:      12,
+				RateLimit:        100,
+				StartConcurrency: 2,
+				EndConcurrency:   4,
+				ConcurrencyStep:  2,
+				Proxy:            testServer.URL(),
+				URL:              url,
+				BucketName:       bucketName,
+				Endpoint:         testS3Server.URL(),
+				AccessKeyID:      "ABCD",
+				SecretAccessKey:  "ABCD",
 			})
 		})
 
@@ -86,7 +86,7 @@ var _ = Describe("Throughputramp", func() {
 		It("ramps up throughput over multiple tests", func() {
 			Eventually(process.Wait(), "5s").Should(Receive())
 			Expect(runner.ExitCode()).To(Equal(0))
-			Expect(testServer.ReceivedRequests()).To(HaveLen(11))
+			Expect(testServer.ReceivedRequests()).To(HaveLen(24))
 		})
 
 		It("sends the csv and plot to the s3 bucket", func() {

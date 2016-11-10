@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	numRequests        = flag.Int("n", 1000, "number of requests to send")
-	concurrentRequests = flag.Int("c", 10, "number of requests to send")
-	proxy              = flag.String("x", "", "proxy for request")
-	interval           = flag.Int("i", 1, "interval in seconds to average throughput")
-	lowerThroughput    = flag.Int("lower-throughput", 50, "Starting throughput value")
-	upperThroughput    = flag.Int("upper-throughput", 200, "Ending throughput value")
-	throughputStep     = flag.Int("throughput-step", 50, "Throughput increase per run")
-	s3Endpoint         = flag.String("s3-endpoint", "", "The endpoint for the S3 service to which plots will be uploaded.")
-	s3Region           = flag.String("s3-region", "", "The region for the S3 service to which plots will be uploaded. If provided, endpoint is ignored.")
-	bucketName         = flag.String("bucket-name", "", "Name of the bucket to which plots will be uploaded.")
-	accessKeyID        = flag.String("access-key-id", "", "AccessKeyID for the S3 service.")
-	secretAccessKey    = flag.String("secret-access-key", "", "SecretAccessKey for the S3 service.")
+	numRequests      = flag.Int("n", 1000, "number of requests to send")
+	proxy            = flag.String("x", "", "proxy for request")
+	interval         = flag.Int("i", 1, "interval in seconds to average throughput")
+	threadRateLimit  = flag.Int("q", 0, "thread rate limit")
+	lowerConcurrency = flag.Int("lower-concurrency", 1, "Starting concurrency value")
+	upperConcurrency = flag.Int("upper-concurrency", 30, "Ending concurrency value")
+	concurrencyStep  = flag.Int("concurrency-step", 1, "Concurrency increase per run")
+	s3Endpoint       = flag.String("s3-endpoint", "", "The endpoint for the S3 service to which plots will be uploaded.")
+	s3Region         = flag.String("s3-region", "", "The region for the S3 service to which plots will be uploaded. If provided, endpoint is ignored.")
+	bucketName       = flag.String("bucket-name", "", "Name of the bucket to which plots will be uploaded.")
+	accessKeyID      = flag.String("access-key-id", "", "AccessKeyID for the S3 service.")
+	secretAccessKey  = flag.String("secret-access-key", "", "SecretAccessKey for the S3 service.")
 )
 
 func main() {
@@ -51,13 +51,13 @@ func main() {
 
 	url := flag.Args()[0]
 
-	start := *lowerThroughput
-	end := *upperThroughput
-	step := *throughputStep
+	start := *lowerConcurrency
+	end := *upperConcurrency
+	step := *concurrencyStep
 
 	var dataPoints []*data.Point
 	for i := start; i <= end; i += step {
-		points, err := runBenchmark(url, *proxy, *numRequests, *concurrentRequests, i)
+		points, err := runBenchmark(url, *proxy, *numRequests, i, *threadRateLimit)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 			os.Exit(1)
