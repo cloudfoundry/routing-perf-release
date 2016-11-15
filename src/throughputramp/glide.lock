@@ -1,8 +1,8 @@
-hash: 420e65dbb8a3083dd2fe325230c9026224d24c6dd75f5cf04c804af95e7e55a3
-updated: 2016-11-07T17:20:52.204791353-08:00
+hash: f5f672af5857594535c93f26f0afd8da97f2ab5506f0d23dce89941ca03dd018
+updated: 2016-11-15T11:20:50.697648802-08:00
 imports:
 - name: github.com/aws/aws-sdk-go
-  version: d8c88d08bd2ea15fa84ac414fe6c75b13b4c2023
+  version: d4ea1079c110649add16402318fdb2a4336e55a7
   subpackages:
   - aws
   - aws/awserr
@@ -37,11 +37,11 @@ imports:
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 testImports:
 - name: github.com/golang/protobuf
-  version: 2bc9827a78f95c6665b5fe0abd1fd66b496ae2d8
+  version: da116c3771bf4a398a43f44e069195ef1c9688ef
   subpackages:
   - proto
 - name: github.com/onsi/ginkgo
-  version: c07a44f02cf4a895e331f4f473c0943ee116c668
+  version: 00054c0bb96fc880d4e0be1b90937fad438c5290
   subpackages:
   - config
   - internal/codelocation
@@ -60,7 +60,7 @@ testImports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: ff4bc6b6f9f5affa66635cd04d31d2a7ee21ffd6
+  version: 2b6ed62707a2f5fdf1ba9cd856cdeec6bfff6b61
   subpackages:
   - format
   - gbytes
@@ -81,7 +81,7 @@ testImports:
   subpackages:
   - ginkgomon
 - name: golang.org/x/sys
-  version: 62bee037599929a6e9146f29d10dd5208c43507d
+  version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
   - unix
 - name: gopkg.in/yaml.v2

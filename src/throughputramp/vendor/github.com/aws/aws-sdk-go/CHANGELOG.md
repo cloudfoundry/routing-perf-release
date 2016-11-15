@@ -1,3 +1,18 @@
+Release v1.5.4 (2016-11-15)
+===
+
+Service Client Updates
+---
+`service/cognito-idp`: Updates service API and documentation
+
+Release v1.5.3 (2016-11-11)
+===
+
+Service Client Updates
+---
+`service/cloudformation`: Updates service documentation and examples
+`service/logs`: Updates service API and documentation
+
 Release v1.5.2 (2016-11-03)
 ===
 
@@ -70,7 +85,7 @@ Service Client Updates
 SDK Feature Updates
 ---
 * `service/dynamodb/dynamodbattribute`: Add UnmarshalListOfMaps #897
-  * Adds support for unmarshalling a list of maps. This is useful for unmarshalling the DynamoDB AttributeValue list of maps returned by APIs like Query and Scan.
+  * Adds support for unmarshaling a list of maps. This is useful for unmarshaling the DynamoDB AttributeValue list of maps returned by APIs like Query and Scan.
 
 Release v1.4.18 (2016-10-17)
 ===
