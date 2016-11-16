@@ -35,10 +35,11 @@ type Args struct {
 	BucketName       string
 	AccessKeyID      string
 	SecretAccessKey  string
+	ComparisonFile   string
 }
 
 func (args Args) ArgSlice() []string {
-	return []string{
+	argSlice := []string{
 		"-n", strconv.Itoa(args.NumRequests),
 		"-q", strconv.Itoa(args.RateLimit),
 		"-x", args.Proxy,
@@ -49,8 +50,14 @@ func (args Args) ArgSlice() []string {
 		"-bucket-name", args.BucketName,
 		"-access-key-id", args.AccessKeyID,
 		"-secret-access-key", args.SecretAccessKey,
-		args.URL,
 	}
+
+	if args.ComparisonFile != "" {
+		argSlice = append(argSlice, "-comparison-file", args.ComparisonFile)
+	}
+
+	argSlice = append(argSlice, args.URL)
+	return argSlice
 }
 
 func TestThroughputramp(t *testing.T) {

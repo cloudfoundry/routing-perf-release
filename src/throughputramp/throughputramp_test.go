@@ -3,6 +3,7 @@ package main_test
 import (
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -13,13 +14,25 @@ import (
 	"github.com/tedsuo/ifrit/ginkgomon"
 )
 
+const comparisonCSV = `
+throughput,latency
+100, 0.01
+200, 0.02
+300, 0.03
+400, 0.04
+500, 0.05
+600, 0.06
+`
+
 var _ = Describe("Throughputramp", func() {
 	var (
-		runner       *ginkgomon.Runner
-		process      ifrit.Process
-		testServer   *ghttp.Server
-		testS3Server *ghttp.Server
-		bodyChan     chan []byte
+		runner             *ginkgomon.Runner
+		process            ifrit.Process
+		testServer         *ghttp.Server
+		testS3Server       *ghttp.Server
+		comparisonFilePath string
+		bodyChan           chan []byte
+		runnerArgs         Args
 	)
 
 	Context("when correct arguments are used", func() {
@@ -41,6 +54,12 @@ var _ = Describe("Throughputramp", func() {
 
 			testS3Server = ghttp.NewServer()
 
+			comparisonFile, err := ioutil.TempFile("", "comparison.csv")
+			Expect(err).ToNot(HaveOccurred())
+
+			comparisonFile.WriteString(comparisonCSV)
+			comparisonFilePath = comparisonFile.Name()
+
 			testHandlers := []http.HandlerFunc{
 				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
 				func(rw http.ResponseWriter, req *http.Request) {
@@ -57,7 +76,7 @@ var _ = Describe("Throughputramp", func() {
 				ghttp.CombineHandlers(append([]http.HandlerFunc{ghttp.VerifyContentType("image/png")}, testHandlers...)...),
 			)
 
-			runner = NewThroughputRamp(binPath, Args{
+			runnerArgs = Args{
 				NumRequests:      12,
 				RateLimit:        100,
 				StartConcurrency: 2,
@@ -69,7 +88,9 @@ var _ = Describe("Throughputramp", func() {
 				Endpoint:         testS3Server.URL(),
 				AccessKeyID:      "ABCD",
 				SecretAccessKey:  "ABCD",
-			})
+				ComparisonFile:   comparisonFilePath,
+			}
+			runner = NewThroughputRamp(binPath, runnerArgs)
 		})
 
 		JustBeforeEach(func() {
@@ -81,6 +102,8 @@ var _ = Describe("Throughputramp", func() {
 			testServer.Close()
 			testS3Server.Close()
 			close(bodyChan)
+			err := os.Remove(comparisonFilePath)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("ramps up throughput over multiple tests", func() {
@@ -102,6 +125,30 @@ var _ = Describe("Throughputramp", func() {
 			Eventually(bodyChan).Should(Receive(&pngBytes))
 			Expect(pngBytes).ToNot(BeEmpty())
 			Expect(http.DetectContentType(pngBytes)).To(Equal("image/png"))
+		})
+
+		Context("but with no comparison data argument", func() {
+			BeforeEach(func() {
+				runnerArgs.ComparisonFile = ""
+				runner = NewThroughputRamp(binPath, runnerArgs)
+			})
+
+			It("does not fail", func() {
+				Eventually(process.Wait(), "5s").Should(Receive())
+				Expect(runner.ExitCode()).To(Equal(0))
+			})
+		})
+
+		Context("but with an incorrect comparison data argument", func() {
+			BeforeEach(func() {
+				runnerArgs.ComparisonFile = "/does/not/exist"
+				runner = NewThroughputRamp(binPath, runnerArgs)
+			})
+
+			It("exits 1 with an error", func() {
+				Eventually(process.Wait(), "5s").Should(Receive())
+				Expect(runner.ExitCode()).To(Equal(1))
+			})
 		})
 	})
 

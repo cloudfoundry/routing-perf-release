@@ -28,6 +28,7 @@ var (
 	bucketName       = flag.String("bucket-name", "", "Name of the bucket to which plots will be uploaded.")
 	accessKeyID      = flag.String("access-key-id", "", "AccessKeyID for the S3 service.")
 	secretAccessKey  = flag.String("secret-access-key", "", "SecretAccessKey for the S3 service.")
+	comparisonFile   = flag.String("comparison-file", "", "CSV file containing data to be used for comparison with the generated plot.")
 )
 
 func main() {
@@ -57,9 +58,9 @@ func main() {
 
 	var dataPoints []*data.Point
 	for i := start; i <= end; i += step {
-		points, err := runBenchmark(url, *proxy, *numRequests, i, *threadRateLimit)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		points, benchmarkErr := runBenchmark(url, *proxy, *numRequests, i, *threadRateLimit)
+		if benchmarkErr != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", benchmarkErr.Error())
 			os.Exit(1)
 		}
 
@@ -80,14 +81,13 @@ func main() {
 	fmt.Fprintf(os.Stderr, "csv uploaded to %s\n", loc)
 
 	fmt.Fprintln(os.Stderr, "Generating plot from csv data")
-	plotFile, err := plotgen.Generate(csvData)
+	plotBuffer, err := plotgen.Generate(filename, csvData, *comparisonFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to generate plot: %s", err.Error())
 		os.Exit(1)
 	}
-	defer plotFile.Close()
 
-	loc, err = uploader.Upload(s3Config, plotFile, filename+".png", true)
+	loc, err = uploader.Upload(s3Config, plotBuffer, filename+".png", true)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err.Error())
 		os.Exit(1)
@@ -108,12 +108,12 @@ func runBenchmark(url, proxy string, numRequests, concurrentRequests, rateLimit 
 
 	heyData, err := exec.Command("hey", args...).Output()
 	if err != nil {
-		return nil, fmt.Errorf("hey error: %s\nData:\n%s\n", err.Error(), string(heyData))
+		return nil, fmt.Errorf("hey error: %s\nData:\n%s", err.Error(), string(heyData))
 	}
 
 	dataPoints, err := data.Parse(string(heyData))
 	if err != nil {
-		return nil, fmt.Errorf("parse error: %s\nData:\n%s\n", err.Error(), string(heyData))
+		return nil, fmt.Errorf("parse error: %s\nData:\n%s", err.Error(), string(heyData))
 	}
 
 	return dataPoints, nil
