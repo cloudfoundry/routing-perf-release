@@ -5,10 +5,12 @@ END_PORT=<%= p("tcp_route_populator.external_port_end") %>
 SLEEP_TIME=<%= p("tcp_route_populator.sleep_interval") %>
 
 function add_tcp_routes() {
+router_groups=$(curl <%= p("tcp_route_populator.routing_api_url") %>/routing/v1/router_groups)
+guid=$(echo ${router_groups} | sed -n 's/.*\"guid\":\"\([^\"]*\)\".*/\1/p')
   for i in $(seq $START_PORT $END_PORT);
   do
     echo "\nAdding TCP route entry for port: $i"
-    curl <%= p("tcp_route_populator.routing_api_url") %>/routing/v1/tcp_routes/create -X POST -d '[{ "router_group_guid": "<%= p("tcp_route_populator.router_group_guid") %>", "port": '$i', "backend_port": 8080, "backend_ip": "<%= link("static").instances[0].address %>", "ttl": 120 }]'
+    curl <%= p("tcp_route_populator.routing_api_url") %>/routing/v1/tcp_routes/create -X POST -d '[{ "router_group_guid": "${guid}", "port": '$i', "backend_port": 8080, "backend_ip": "<%= link("static").instances[0].address %>", "ttl": 120 }]'
   done
 }
 

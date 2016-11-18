@@ -62,7 +62,6 @@ instance_groups:
         external_port_start: 60000
         external_port_end: 60999
         sleep_interval: 10
-        router_group_guid: e2149a93-eddf-4b82-5d21-c654eb8cd22f
   networks:
   - name: default
 

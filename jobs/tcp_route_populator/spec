@@ -21,6 +21,3 @@ properties:
 
   tcp_route_populator.sleep_interval:
     description: Time between sending new TCP route registrations
-
-  tcp_route_populator.router_group_guid:
-    description: Router group guid of the TCP domain to use.
