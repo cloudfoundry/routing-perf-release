@@ -6,7 +6,7 @@ templates:
   run_perf_test.erb: bin/run_perf_test
 
 packages:
-  - hey
+  - boom
 
 properties:
   performance_tests.routers:
