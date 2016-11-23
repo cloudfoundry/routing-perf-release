@@ -5,11 +5,12 @@ A BOSH release containing benchmarking tools and utilities to setup the
 performance testing for the [gorouter](https://github.com/cloudfoundry/gorouter)
 and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router).
 
-This release will deploy a static backend app that returns 1kB of static data
-by default. This can be configured via the `gostatic.response_size` job
-property for gostatic.
+This release will deploy:
+- a static backend app that returns 1kB of static data by default (configurable using `gostatic.response_size` property)
+- a VM for running the load test
+- processes that populate the routing table for both routers with test data
 
-### Get the code
+## Get the code
 
 1. Fetch release repo
 
@@ -100,3 +101,35 @@ If you are deploying this release on any other IaaS's, you can update the
 [cloud-config](manifests/cloud-config-aws.yml) with the correct
 `cloud_properties`. For more information, refer to the
 [BOSH documentation](http://bosh.io/docs).
+
+## Running the load tests manually
+
+See [Get the code](#get-the-code)
+
+Build the loadtest script
+
+```
+cd routing-perf-release/src/throughputramp
+GOOS=linux GOARCH=amd64 go build .
+```
+
+Copy the binary onto your loadtest source VM
+
+```
+bosh target myenv
+bosh download manifest performance /tmp/performance.yml
+bosh deployment /tmp/performance.yml
+bosh scp http_performance_tests/0 --upload --gateway_user vcap --gateway_host bosh.myenv.com --gateway_identity_file bosh.pem /Users/pivotal/workspace/routing-perf-release/src/throughputramp/throughputramp /tmp
+```
+
+SSH onto the loadtest source VM, install r, and run the test
+
+```
+bosh ssh http_performance_tests/0 --gateway_user vcap --gateway_host bosh.myenv.com --gateway_identity_file bosh.pem
+sudo -i
+apt-get install r-base -y
+export PATH=$PATH:/var/vcap/packages/hey/bin
+/tmp/throughputramp -access-key-id REDACTED -secret-access-key REDACTED -bucket-name REDACTED -s3-region us-east-1 -q 100 -n 10000 -lower-concurrency 1 -upper-concurrency 40 -concurrency-step 1 -x http://ROUTER_IP http://gostatic-0.foo.com
+```
+
+The script will upload a graph of the results to an S3 bucket, specified by options `-access-key-id`, `-secret-access-key`, `-bucket-name`, and `-s3-region`
