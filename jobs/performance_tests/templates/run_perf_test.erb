@@ -32,7 +32,7 @@ run_perf_tests() {
   exec /var/vcap/packages/hey/bin/hey \
     -n $TOTAL_REQUESTS \
     -c $TOTAL_CONCURRENT \
-    -t 0
+    -t 0 \
     -host "<%=p("performance_tests.host") %>" \
     ${URI} | tee ${LOG_DIR}/loadtest_${date}.log
   echo ""
