@@ -31,7 +31,7 @@ function sync_package() {
 
 sync_package gostatic             -app gostatic/... &
 sync_package http_route_populator -app http_route_populator/... &
-sync_package boom                  -app github.com/rakyll/boom/... &
+sync_package hey                  -app github.com/rakyll/hey/... &
 
 wait
 
