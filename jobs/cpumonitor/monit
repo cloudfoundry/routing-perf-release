@@ -1,0 +1,5 @@
+check process cpumonitor
+  with pidfile /var/vcap/sys/run/cpumonitor/pid
+  start program "/var/vcap/jobs/cpumonitor/bin/ctl start"
+  stop program "/var/vcap/jobs/cpumonitor/bin/ctl stop"
+  group vcap

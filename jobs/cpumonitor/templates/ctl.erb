@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RUN_DIR=/var/vcap/sys/run/cpu_monitor
+RUN_DIR=/var/vcap/sys/run/cpumonitor
 PIDFILE=${RUN_DIR}/pid
 
 case $1 in
@@ -11,7 +11,7 @@ case $1 in
 
     echo $$ > $PIDFILE
 
-    exec /var/vcap/packages/cpu_monitor/bin/cpu_monitor
+    exec /var/vcap/packages/gc/bin/cpumonitor
 
     ;;
 
