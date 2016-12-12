@@ -1,0 +1,7 @@
+---
+name: cpu_monitor
+dependencies:
+  - golang
+files:
+  - cpu_monitor/*.go # gosub
+  - github.com/c9s/goprocinfo/linux/*.go # gosub

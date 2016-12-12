@@ -1,0 +1,9 @@
+---
+name: cpu_monitor
+templates:
+  ctl.erb: bin/ctl
+
+packages:
+  - cpu_monitor
+
+properties: {}
