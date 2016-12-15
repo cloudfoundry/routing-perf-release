@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync/atomic"
+	"time"
 )
 
 var (
@@ -33,6 +34,7 @@ func (h *Handler) Start(w http.ResponseWriter, r *http.Request) {
 	atomic.AddInt32(&h.startCounter, 1)
 	//	TODO: need to handle the err
 	go h.collector.Run()
+	log.Printf("started cpu collector at %s", time.Now().Format(time.RFC3339))
 	w.Write([]byte("Collecting CPU stats\n"))
 }
 
@@ -44,6 +46,7 @@ func (h *Handler) Stop(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cpuStats := h.collector.Result()
+	log.Printf("stoped cpu collector at %s", time.Now().Format(time.RFC3339))
 	json, err := json.Marshal(cpuStats)
 	if err != nil {
 		log.Printf("Failed to marshal %v", err)

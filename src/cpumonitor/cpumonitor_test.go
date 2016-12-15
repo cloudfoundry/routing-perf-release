@@ -56,7 +56,7 @@ var _ = Describe("Cpumonitor", func() {
 			//wait for server to collect stats
 			time.Sleep(time.Second * 1)
 
-			Eventually(session.Err).Should(gbytes.Say("CPU monitor is running on 6530"))
+			Eventually(session.Err).Should(gbytes.Say("cpumonitor listening on 6530"))
 		})
 
 		It("returns an http error if start is called multiple times", func() {

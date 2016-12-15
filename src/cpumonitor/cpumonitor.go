@@ -37,7 +37,7 @@ func main() {
 }
 
 func startServer() {
-	log.Printf("CPU monitor is running on %d \n", *port)
+	log.Printf("cpumonitor listening on %d \n", *port)
 	cpuCalculator := new(stats.CPUOps)
 	runInterval := time.Duration(int32(*runInterval)) * time.Millisecond
 	cpuInterval := time.Duration(int32(*cpuInterval)) * time.Second

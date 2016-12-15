@@ -6,4 +6,7 @@ templates:
 packages:
   - cpumonitor
 
-properties: {}
+properties:
+  cpumonitor.run_interval:
+    description: Interval for monitoring cpu metrics
+    default: 1000

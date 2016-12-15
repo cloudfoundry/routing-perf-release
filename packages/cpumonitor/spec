@@ -3,6 +3,6 @@ name: cpumonitor
 dependencies:
   - golang
 files:
-  - cpumonitor/*.go # gosub
+  - cpumonitor/**/*.go # gosub
   - github.com/shirou/gopsutil/cpu/*.go # gosub
   - github.com/shirou/gopsutil/internal/common/*.go # gosub
