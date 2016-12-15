@@ -1,29 +1,51 @@
 package main
 
+import (
+	"cpumonitor/stats"
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"time"
+)
+
 // TODO
 // security??
-// have some sort of chan of percentage
-// trigger start, either via a handler or something
-// get results, either via a handler or something
 
-//func stop(w http.ResponseWriter, r *http.Request) {
-//	// return the serialized stuff
-//}
-//
-//func getCPU(w http.ResponseWriter, r *http.Request) {
-//	percent, err := cpu.Percent(1*time.Second, false)
-//	if err != nil {
-//		log.Fatal("Couldn't get percentage")
-//	}
-//
-//	body := fmt.Sprintf("%#v", percent)
-//	w.Write([]byte(body))
-//}
+var (
+	port        = flag.Int("port", 0, "port for the server")
+	runInterval = flag.Int("runInterval", 1, "Sampling interval, how ofter to call CPU stats in second")
+	cpuInterval = flag.Int("cpuInterval", 0, "Time between each CPU stat in second, if 0 is given it will compare the current cpu times against the last call")
+	perCPU      = flag.Bool("perCpu", false, "Percent calculates the percentage of cpu used either per CPU or combined")
+)
 
 func main() {
-	//http.HandleFunc("/start", start)         // set router
-	//err := http.ListenAndServe(":9090", nil) // set listen port
-	//if err != nil {
-	//	log.Fatal("ListenAndServe: ", err)
-	//}
+	flag.Parse()
+	if *port == 0 {
+		fmt.Fprintf(os.Stderr, "-port must be provided")
+		os.Exit(1)
+
+	}
+	if *port > 65535 {
+		fmt.Fprintf(os.Stderr, "-port must be valid")
+		os.Exit(1)
+
+	}
+
+	startServer()
+}
+
+func startServer() {
+	cpuCalculator := new(stats.CPUOps)
+	runInterval := time.Duration(int32(*runInterval)) * time.Second
+	cpuInterval := time.Duration(int32(*cpuInterval)) * time.Second
+	cpuCollector := stats.NewCPUCollector(cpuCalculator, stats.DefaultTicker(), runInterval, cpuInterval, *perCPU)
+	statsHandler := stats.NewStatHandler(cpuCollector)
+	http.HandleFunc("/start", statsHandler.Start)
+	http.HandleFunc("/stop", statsHandler.Stop)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
