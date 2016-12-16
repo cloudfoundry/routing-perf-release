@@ -3,18 +3,19 @@ package data
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type CPUStat struct {
+type cpuStat struct {
 	TimeStamp  time.Time `json:"TimeStamp"`
 	Percentage []float64 `json:"Percentage"`
 }
 
-func (i *CPUStat) percentageString() string {
+func (i *cpuStat) percentageString() string {
 	var results []string
 	for _, d := range i.Percentage {
 		results = append(results, strconv.FormatFloat(d, 'f', 6, 64))
@@ -22,19 +23,19 @@ func (i *CPUStat) percentageString() string {
 	return strings.Join(results, ",")
 }
 
-func (i *CPUStat) string() string {
+func (i *cpuStat) string() string {
 	return fmt.Sprintf("%s,%v", i.TimeStamp, i.percentageString())
 }
 
-func GenerateCpuCSV(body []byte) []byte {
+func GenerateCpuCSV(body []byte) ([]byte, error) {
 	if body == nil || len(body) == 0 {
-		return nil
+		return nil, errors.New("empty/nil body")
 	}
 
-	var results []CPUStat
+	var results []cpuStat
 	err := json.Unmarshal(body, &results)
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, fmt.Errorf("marshaling data: %s", err)
 	}
 	buf := bytes.NewBuffer(nil)
 
@@ -43,5 +44,5 @@ func GenerateCpuCSV(body []byte) []byte {
 		buf.WriteByte('\n')
 		buf.WriteString(p.string())
 	}
-	return buf.Bytes()
+	return buf.Bytes(), nil
 }

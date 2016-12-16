@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -83,7 +84,7 @@ func main() {
 	fmt.Fprintln(os.Stderr, "Generating plot from csv data")
 	plotBuffer, err := plotgen.Generate(filename, csvData, *comparisonFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to generate plot: %s", err)
+		fmt.Fprintf(os.Stderr, "failed to generate plot: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -185,19 +186,21 @@ func stopCPUMonitor(url string, s3config *uploader.Config) error {
 		return fmt.Errorf("received resp %d", resp.StatusCode)
 	}
 
-	//TODO: test this
-	//var rawData []byte
-	//rawData, err = ioutil.ReadAll(resp.Body)
-	//defer resp.Body.Close()
+	rawData, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 
-	//	filename := fmt.Sprintf("cpuStats_%s.csv", time.Now().UTC().Format(time.RFC3339))
-	//
-	//	csvData := data.GenerateCpuCSV(rawData)
-	//	loc, err := uploader.Upload(s3config, bytes.NewBuffer(csvData), filename, false)
-	//	if err != nil {
-	//		return fmt.Errorf("uploading to s3 error: %s", err)
-	//	}
-	//	fmt.Fprintf(os.Stdout, "csv uploaded to %s", loc)
+	filename := fmt.Sprintf("cpuStats-%s.csv", time.Now().UTC().Format(time.RFC3339))
+
+	csvData, err := data.GenerateCpuCSV(rawData)
+	if err != nil {
+		return fmt.Errorf("GeneratateCpuCSV %d", resp.StatusCode)
+	}
+
+	loc, err := uploader.Upload(s3config, bytes.NewBuffer(csvData), filename, false)
+	if err != nil {
+		return fmt.Errorf("uploading to s3 error: %s", err)
+	}
+	fmt.Fprintf(os.Stdout, "csv uploaded to %s\n", loc)
 
 	return nil
 }

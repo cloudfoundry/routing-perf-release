@@ -1,70 +1,64 @@
 package data_test
 
 import (
-	"encoding/json"
 	"throughputramp/data"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var singlePercentageCsv = `timeStamp,percentage
+var singlePercentageCSV = `timeStamp,percentage
 2016-12-15 15:00:47.575579693 -0800 PST,12.358514
 2016-12-15 15:00:47.672438722 -0800 PST,20.779221`
 
-var multiplePercentageCsv = `timeStamp,percentage,percentage
+var singlePercentageJSON = `[
+{"TimeStamp":"2016-12-15T15:00:47.575579693-08:00","Percentage":[12.358514295296388]},
+{"TimeStamp":"2016-12-15T15:00:47.672438722-08:00","Percentage":[20.77922077922078]}
+]`
+
+var multiplePercentageCSV = `timeStamp,percentage,percentage
 2016-12-15 15:00:47.575579693 -0800 PST,12.358514,13.358514
 2016-12-15 15:00:47.672438722 -0800 PST,20.779221,21.779221`
 
+var multiplePercentageJSON = `[
+{"TimeStamp":"2016-12-15T15:00:47.575579693-08:00","Percentage":[12.358514295296388,13.358514295296388]},
+{"TimeStamp":"2016-12-15T15:00:47.672438722-08:00","Percentage":[20.77922077922078,21.77922077922078]}
+]`
+
 var _ = Describe("GenerateCpuCSV", func() {
-	It("Returns an empty byte slice if empty byte passed", func() {
-		emptyByte := data.GenerateCpuCSV([]byte(""))
+	It("returns an error and  empty byte slice if empty byte passed", func() {
+		emptyByte, err := data.GenerateCpuCSV([]byte(""))
+		Expect(err).To(HaveOccurred())
 		Expect(emptyByte).To(BeEmpty())
 	})
 
-	It("Returns an empty byte slice if nil byte passed", func() {
-		emptyByte := data.GenerateCpuCSV(nil)
+	It("returns an error and empty byte slice if nil byte passed", func() {
+		emptyByte, err := data.GenerateCpuCSV([]byte(nil))
+		Expect(err).To(HaveOccurred())
 		Expect(emptyByte).To(BeNil())
 	})
 
-	Context("CSV format single Percentagent", func() {
-		It("returns correctly formatted CSV output", func() {
-			var timeStamp1, timeStamp2 time.Time
-			var err error
+	It("returns an error if bad data passed", func() {
+		badData := `timeStamp, timeStamp`
+		emptyByte, err := data.GenerateCpuCSV([]byte(badData))
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("marshaling data"))
+		Expect(emptyByte).To(BeNil())
+	})
 
-			timeStamp1, err = time.Parse(time.RFC3339, "2016-12-15T15:00:47.575579693-08:00")
+	Context("CSV format single percentage", func() {
+		It("returns correctly formatted CSV output", func() {
+			result, err := data.GenerateCpuCSV([]byte(singlePercentageJSON))
 			Expect(err).ToNot(HaveOccurred())
-			timeStamp2, err = time.Parse(time.RFC3339, "2016-12-15T15:00:47.672438722-08:00")
-			Expect(err).ToNot(HaveOccurred())
-			cpuStats := []data.CPUStat{
-				data.CPUStat{TimeStamp: timeStamp1, Percentage: []float64{12.358514295296388}},
-				data.CPUStat{TimeStamp: timeStamp2, Percentage: []float64{20.77922077922078}},
-			}
-			jsonData, err := json.Marshal(cpuStats)
-			Expect(err).ToNot(HaveOccurred())
-			result := data.GenerateCpuCSV(jsonData)
-			Expect(string(result)).To(Equal(singlePercentageCsv))
+			Expect(string(result)).To(Equal(singlePercentageCSV))
 		})
 	})
 
 	Context("CSV format multiple Percentagent", func() {
 		It("returns correctly formatted CSV output", func() {
-			var timeStamp1, timeStamp2 time.Time
-			var err error
-
-			timeStamp1, err = time.Parse(time.RFC3339, "2016-12-15T15:00:47.575579693-08:00")
+			result, err := data.GenerateCpuCSV([]byte(multiplePercentageJSON))
 			Expect(err).ToNot(HaveOccurred())
-			timeStamp2, err = time.Parse(time.RFC3339, "2016-12-15T15:00:47.672438722-08:00")
-			Expect(err).ToNot(HaveOccurred())
-			cpuStats := []data.CPUStat{
-				data.CPUStat{TimeStamp: timeStamp1, Percentage: []float64{12.358514295296388, 13.358514295296388}},
-				data.CPUStat{TimeStamp: timeStamp2, Percentage: []float64{20.77922077922078, 21.77922077922078}},
-			}
-			jsonData, err := json.Marshal(cpuStats)
-			Expect(err).ToNot(HaveOccurred())
-			result := data.GenerateCpuCSV(jsonData)
-			Expect(string(result)).To(Equal(multiplePercentageCsv))
+			Expect(string(result)).To(Equal(multiplePercentageCSV))
 		})
 	})
 })

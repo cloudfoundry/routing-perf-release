@@ -24,7 +24,7 @@ throughput,latency
 600, 0.06
 `
 
-const cpuMonitorData = `
+var cpuMonitorData = `
 [{"Percentage":[12.358514295296388, 19.1234123],"TimeStamp":"2016-12-15T15:00:47.575579693-08:00"},
 {"Percentage":[20.77922077922078, 22.23345],"TimeStamp":"2016-12-15T15:00:47.672438722-08:00"}]
 `
@@ -34,19 +34,17 @@ var _ = Describe("Throughputramp", func() {
 		runner             *ginkgomon.Runner
 		process            ifrit.Process
 		testServer         *ghttp.Server
-		cpumonitorServer   *ghttp.Server
 		testS3Server       *ghttp.Server
 		comparisonFilePath string
 		bodyChan           chan []byte
 		runnerArgs         Args
+		bodyTestHandler    http.HandlerFunc
 	)
 
 	Context("when correct arguments are used", func() {
 		BeforeEach(func() {
 			url := "http://example.com"
-
 			testServer = ghttp.NewServer()
-			cpumonitorServer = ghttp.NewServer()
 			handler := ghttp.CombineHandlers(
 				func(rw http.ResponseWriter, req *http.Request) {
 					Expect(req.Host).To(Equal(strings.TrimPrefix(url, "http://")))
@@ -56,11 +54,7 @@ var _ = Describe("Throughputramp", func() {
 			testServer.AppendHandlers(handler)
 			testServer.AllowUnhandledRequests = true
 
-			cpumonitorServer.AppendHandlers(ghttp.RespondWith(http.StatusOK, cpuMonitorData), ghttp.VerifyRequest("GET", "/stop"))
-			cpumonitorServer.AppendHandlers(ghttp.RespondWith(http.StatusOK, nil), ghttp.VerifyRequest("GET", "/start"))
-
-			bodyChan = make(chan []byte, 2)
-			bucketName := "blah-bucket"
+			bodyChan = make(chan []byte, 3)
 
 			testS3Server = ghttp.NewServer()
 
@@ -70,7 +64,7 @@ var _ = Describe("Throughputramp", func() {
 			comparisonFile.WriteString(comparisonCSV)
 			comparisonFilePath = comparisonFile.Name()
 
-			testHandlers := []http.HandlerFunc{
+			bodyTestHandler = ghttp.CombineHandlers(
 				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
 				func(rw http.ResponseWriter, req *http.Request) {
 					defer GinkgoRecover()
@@ -80,10 +74,13 @@ var _ = Describe("Throughputramp", func() {
 					bodyChan <- bodyBytes
 				},
 				ghttp.RespondWith(http.StatusOK, nil),
-			}
+			)
 			testS3Server.AppendHandlers(
-				ghttp.CombineHandlers(testHandlers...),
-				ghttp.CombineHandlers(append([]http.HandlerFunc{ghttp.VerifyContentType("image/png")}, testHandlers...)...),
+				bodyTestHandler,
+				ghttp.CombineHandlers(
+					ghttp.VerifyContentType("image/png"),
+					bodyTestHandler,
+				),
 			)
 
 			runnerArgs = Args{
@@ -94,17 +91,16 @@ var _ = Describe("Throughputramp", func() {
 				ConcurrencyStep:  2,
 				Proxy:            testServer.URL(),
 				URL:              url,
-				BucketName:       bucketName,
+				BucketName:       "blah-bucket",
 				Endpoint:         testS3Server.URL(),
 				AccessKeyID:      "ABCD",
 				SecretAccessKey:  "ABCD",
 				ComparisonFile:   comparisonFilePath,
-				CPUMonitorURL:    cpumonitorServer.URL(),
 			}
-			runner = NewThroughputRamp(binPath, runnerArgs)
 		})
 
 		JustBeforeEach(func() {
+			runner = NewThroughputRamp(binPath, runnerArgs)
 			process = ginkgomon.Invoke(runner)
 		})
 
@@ -124,17 +120,51 @@ var _ = Describe("Throughputramp", func() {
 		})
 
 		Context("when cpu monitor server is configured", func() {
-			FIt("calls cpumonitor server start&stop endpoints", func() {
+			var (
+				cpumonitorServer *ghttp.Server
+			)
+			BeforeEach(func() {
+				cpumonitorServer = ghttp.NewServer()
+
+				header := make(http.Header)
+				header.Add("Content-Type", "application/json")
+
+				cpumonitorServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/start"),
+						ghttp.RespondWith(http.StatusOK, nil),
+					),
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/stop"),
+						ghttp.RespondWith(http.StatusOK, cpuMonitorData, header),
+					),
+				)
+
+				runnerArgs.CPUMonitorURL = cpumonitorServer.URL()
+				testS3Server.SetHandler(1, bodyTestHandler)
+				testS3Server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyContentType("image/png"),
+						bodyTestHandler,
+					),
+				)
+			})
+			AfterEach(func() {
+				cpumonitorServer.Close()
+			})
+			It("calls cpumonitor server start & stop endpoints", func() {
 				Eventually(process.Wait(), "5s").Should(Receive())
 				Expect(cpumonitorServer.ReceivedRequests()).To(HaveLen(2))
 			})
-			XIt("uploads the CPU stats to the s3 bucket", func() {
-				Eventually(process.Wait(), "5s").Should(Receive())
 
-				var csvBytes []byte
-				Eventually(bodyChan).Should(Receive(&csvBytes))
-				Expect(csvBytes).ToNot(BeEmpty())
-				Expect(string(csvBytes)).To(ContainSubstring("timeStamp,percentage\n"))
+			It("uploads the csv of cpuStats to s3 bucket", func() {
+				Eventually(process.Wait(), "5s").Should(Receive())
+				Expect(runner.ExitCode()).To(Equal(0))
+
+				var cpuCsvBytes []byte
+				Eventually(bodyChan).Should(Receive(&cpuCsvBytes))
+				Expect(cpuCsvBytes).ToNot(BeEmpty())
+				Expect(string(cpuCsvBytes)).To(ContainSubstring("timeStamp,percentage,percentage\n"))
 			})
 		})
 
