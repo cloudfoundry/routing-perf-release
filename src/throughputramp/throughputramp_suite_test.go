@@ -36,6 +36,7 @@ type Args struct {
 	AccessKeyID      string
 	SecretAccessKey  string
 	ComparisonFile   string
+	CPUMonitorURL    string
 }
 
 func (args Args) ArgSlice() []string {
@@ -50,6 +51,7 @@ func (args Args) ArgSlice() []string {
 		"-bucket-name", args.BucketName,
 		"-access-key-id", args.AccessKeyID,
 		"-secret-access-key", args.SecretAccessKey,
+		"-cpumonitor-url", args.CPUMonitorURL,
 	}
 
 	if args.ComparisonFile != "" {

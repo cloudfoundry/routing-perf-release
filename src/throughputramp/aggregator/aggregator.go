@@ -17,7 +17,7 @@ type Point struct {
 	Latency    time.Duration
 }
 
-func (p *Point) String() string {
+func (p *Point) string() string {
 	return strconv.FormatFloat(p.Throughput, 'f', -1, 64) + "," + strconv.FormatFloat(p.Latency.Seconds(), 'f', 6, 64)
 }
 
@@ -28,7 +28,7 @@ func (r Report) GenerateCSV() []byte {
 	buf.WriteString("throughput,latency")
 	for _, p := range r {
 		buf.WriteByte('\n')
-		buf.WriteString(p.String())
+		buf.WriteString(p.string())
 	}
 	return buf.Bytes()
 }

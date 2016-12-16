@@ -24,11 +24,17 @@ throughput,latency
 600, 0.06
 `
 
+const cpuMonitorData = `
+[{"Percentage":[12.358514295296388, 19.1234123],"TimeStamp":"2016-12-15T15:00:47.575579693-08:00"},
+{"Percentage":[20.77922077922078, 22.23345],"TimeStamp":"2016-12-15T15:00:47.672438722-08:00"}]
+`
+
 var _ = Describe("Throughputramp", func() {
 	var (
 		runner             *ginkgomon.Runner
 		process            ifrit.Process
 		testServer         *ghttp.Server
+		cpumonitorServer   *ghttp.Server
 		testS3Server       *ghttp.Server
 		comparisonFilePath string
 		bodyChan           chan []byte
@@ -40,6 +46,7 @@ var _ = Describe("Throughputramp", func() {
 			url := "http://example.com"
 
 			testServer = ghttp.NewServer()
+			cpumonitorServer = ghttp.NewServer()
 			handler := ghttp.CombineHandlers(
 				func(rw http.ResponseWriter, req *http.Request) {
 					Expect(req.Host).To(Equal(strings.TrimPrefix(url, "http://")))
@@ -48,6 +55,9 @@ var _ = Describe("Throughputramp", func() {
 			)
 			testServer.AppendHandlers(handler)
 			testServer.AllowUnhandledRequests = true
+
+			cpumonitorServer.AppendHandlers(ghttp.RespondWith(http.StatusOK, cpuMonitorData), ghttp.VerifyRequest("GET", "/stop"))
+			cpumonitorServer.AppendHandlers(ghttp.RespondWith(http.StatusOK, nil), ghttp.VerifyRequest("GET", "/start"))
 
 			bodyChan = make(chan []byte, 2)
 			bucketName := "blah-bucket"
@@ -89,6 +99,7 @@ var _ = Describe("Throughputramp", func() {
 				AccessKeyID:      "ABCD",
 				SecretAccessKey:  "ABCD",
 				ComparisonFile:   comparisonFilePath,
+				CPUMonitorURL:    cpumonitorServer.URL(),
 			}
 			runner = NewThroughputRamp(binPath, runnerArgs)
 		})
@@ -112,7 +123,22 @@ var _ = Describe("Throughputramp", func() {
 			Expect(testServer.ReceivedRequests()).To(HaveLen(24))
 		})
 
-		It("sends the csv and plot to the s3 bucket", func() {
+		Context("when cpu monitor server is configured", func() {
+			FIt("calls cpumonitor server start&stop endpoints", func() {
+				Eventually(process.Wait(), "5s").Should(Receive())
+				Expect(cpumonitorServer.ReceivedRequests()).To(HaveLen(2))
+			})
+			XIt("uploads the CPU stats to the s3 bucket", func() {
+				Eventually(process.Wait(), "5s").Should(Receive())
+
+				var csvBytes []byte
+				Eventually(bodyChan).Should(Receive(&csvBytes))
+				Expect(csvBytes).ToNot(BeEmpty())
+				Expect(string(csvBytes)).To(ContainSubstring("timeStamp,percentage\n"))
+			})
+		})
+
+		It("uploads the csv and plot to the s3 bucket", func() {
 			Eventually(process.Wait(), "5s").Should(Receive())
 			Expect(runner.ExitCode()).To(Equal(0))
 
