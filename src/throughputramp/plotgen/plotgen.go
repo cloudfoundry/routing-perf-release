@@ -10,35 +10,38 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"time"
 )
 
-func Generate(name string, csv []byte, comparisonFile string) (io.Reader, error) {
+func Generate(name string, csv, cpuCsv []byte, comparisonFile string) (io.Reader, error) {
 	rscriptFile, err := createGeneratorRscript()
 	if err != nil {
 		return nil, err
 	}
 	defer cleanupGeneratorRscript(rscriptFile)
 
-	csvPath := path.Join(os.TempDir(), name)
-	csvFile, err := os.Create(csvPath)
+	csvFileName, err := loadFile(name, csv)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create %s: %s", csvPath, err.Error())
+		return nil, err
 	}
-	defer cleanupTempFile(csvFile)
-
-	_, err = csvFile.Write(csv)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to write to %s: %s", csvFile.Name(), err.Error())
-	}
+	defer cleanupTempFile(csvFileName)
 
 	plotFileName := fmt.Sprintf("%s/plot.png%d", os.TempDir(), rand.Int())
+	args := []string{rscriptFile, csvFileName, plotFileName}
 
-	args := []string{rscriptFile, csvFile.Name(), plotFileName}
 	if comparisonFile != "" {
-		args = append(args, comparisonFile)
+		args = append(args, "-comparefile", comparisonFile)
+	}
+	if cpuCsv != nil {
+		tempCpuFileName := fmt.Sprintf("cpu-%s", time.Now().UTC().Format(time.RFC3339))
+		cpuCsvFileName, err := loadFile(tempCpuFileName, cpuCsv)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, "-cpufile", cpuCsvFileName)
+		defer cleanupTempFile(cpuCsvFileName)
 	}
 	cmd := exec.Command("Rscript", args...)
-
 	cmdOut, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run rscript command:\n%s\n%s", cmdOut, err.Error())
@@ -50,7 +53,7 @@ func Generate(name string, csv []byte, comparisonFile string) (io.Reader, error)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open %s: %s", plotFileName, err.Error())
 	}
-	defer cleanupTempFile(plotFile)
+	defer cleanupTempFile(plotFile.Name())
 	_, err = plotBuffer.ReadFrom(plotFile)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read from %s: %s", plotFileName, err.Error())
@@ -59,14 +62,23 @@ func Generate(name string, csv []byte, comparisonFile string) (io.Reader, error)
 	return plotBuffer, nil
 }
 
-func cleanupTempFile(file *os.File) {
-	err := file.Close()
+func loadFile(fileName string, csv []byte) (string, error) {
+	csvPath := path.Join(os.TempDir(), fileName)
+	csvFile, err := os.Create(csvPath)
 	if err != nil {
-		log.Printf("Failed to close %s: %s\n", file.Name(), err.Error())
+		return "", fmt.Errorf("Failed to create %s: %s", csvPath, err.Error())
 	}
-	err = os.Remove(file.Name())
+	_, err = csvFile.Write(csv)
 	if err != nil {
-		log.Printf("Failed to cleanup %s: %s", file.Name(), err.Error())
+		return "", fmt.Errorf("Failed to write to %s: %s", csvFile.Name(), err.Error())
+	}
+	return csvFile.Name(), nil
+}
+
+func cleanupTempFile(file string) {
+	err := os.Remove(file)
+	if err != nil {
+		log.Printf("Failed to cleanup %s: %s", file, err.Error())
 	}
 }
 

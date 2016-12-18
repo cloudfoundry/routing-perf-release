@@ -14,8 +14,7 @@ import (
 	"github.com/tedsuo/ifrit/ginkgomon"
 )
 
-const comparisonCSV = `
-throughput,latency
+const comparisonCSV = `throughput,latency
 100, 0.01
 200, 0.02
 300, 0.03
@@ -25,8 +24,8 @@ throughput,latency
 `
 
 var cpuMonitorData = `
-[{"Percentage":[12.358514295296388, 19.1234123],"TimeStamp":"2016-12-15T15:00:47.575579693-08:00"},
-{"Percentage":[20.77922077922078, 22.23345],"TimeStamp":"2016-12-15T15:00:47.672438722-08:00"}]
+[{"Percentage":[12.358514295296388, 19.1234123],"Timestamp":"2016-12-15T15:00:47.575579693-08:00"},
+{"Percentage":[20.77922077922078, 22.23345],"Timestamp":"2016-12-15T15:00:47.672438722-08:00"}]
 `
 
 var _ = Describe("Throughputramp", func() {
@@ -164,7 +163,7 @@ var _ = Describe("Throughputramp", func() {
 				var cpuCsvBytes []byte
 				Eventually(bodyChan).Should(Receive(&cpuCsvBytes))
 				Expect(cpuCsvBytes).ToNot(BeEmpty())
-				Expect(string(cpuCsvBytes)).To(ContainSubstring("timeStamp,percentage,percentage\n"))
+				Expect(string(cpuCsvBytes)).To(ContainSubstring("timestamp,percentage,percentage\n"))
 			})
 		})
 

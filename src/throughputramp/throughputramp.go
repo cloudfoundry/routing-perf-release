@@ -58,7 +58,7 @@ func main() {
 
 	cpumonitorURL := strings.TrimPrefix(*cpuMonitorURL, "http://")
 
-	dataPoints := runBenchmark(url,
+	runBenchmark(url,
 		*proxy,
 		cpumonitorURL,
 		*numRequests,
@@ -68,6 +68,9 @@ func main() {
 		*threadRateLimit,
 		s3Config)
 
+}
+
+func uploadPlot(dataPoints []*data.Point, s3Config *uploader.Config, cpuCsv []byte) {
 	ag := aggregator.New(dataPoints, time.Duration(*interval)*time.Second)
 	report := ag.Data()
 
@@ -82,7 +85,7 @@ func main() {
 	fmt.Fprintf(os.Stdout, "csv uploaded to %s\n", loc)
 
 	fmt.Fprintln(os.Stderr, "Generating plot from csv data")
-	plotBuffer, err := plotgen.Generate(filename, csvData, *comparisonFile)
+	plotBuffer, err := plotgen.Generate(filename, csvData, cpuCsv, *comparisonFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to generate plot: %s\n", err)
 		os.Exit(1)
@@ -104,19 +107,13 @@ func runBenchmark(url,
 	upperConcurrency,
 	concurrencyStep,
 	threashold int,
-	uploaderConfig *uploader.Config) []*data.Point {
+	uploaderConfig *uploader.Config) {
 
 	if cpumonitorURL != "" {
 		if err := startCPUMonitor(cpumonitorURL); err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
-		defer func() {
-			if err := stopCPUMonitor(cpumonitorURL, uploaderConfig); err != nil {
-				fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
-			}
-		}()
 	}
 
 	var dataPoints []*data.Point
@@ -130,7 +127,16 @@ func runBenchmark(url,
 		dataPoints = append(dataPoints, points...)
 	}
 
-	return dataPoints
+	var cpuCsv []byte
+	if cpumonitorURL != "" {
+		var err error
+		cpuCsv, err = stopCPUMonitor(cpumonitorURL, uploaderConfig)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+	}
+	uploadPlot(dataPoints, uploaderConfig, cpuCsv)
 }
 
 func run(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]*data.Point, error) {
@@ -176,14 +182,14 @@ func startCPUMonitor(url string) error {
 	return nil
 }
 
-func stopCPUMonitor(url string, s3config *uploader.Config) error {
+func stopCPUMonitor(url string, s3config *uploader.Config) ([]byte, error) {
 	startURL := fmt.Sprintf("http://%s/stop", url)
 	resp, err := http.Get(startURL)
 	if err != nil {
-		return fmt.Errorf("calling cpumonitor stop %s", err)
+		return nil, fmt.Errorf("calling cpumonitor stop %s", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("received resp %d", resp.StatusCode)
+		return nil, fmt.Errorf("received resp %d", resp.StatusCode)
 	}
 
 	rawData, err := ioutil.ReadAll(resp.Body)
@@ -193,14 +199,14 @@ func stopCPUMonitor(url string, s3config *uploader.Config) error {
 
 	csvData, err := data.GenerateCpuCSV(rawData)
 	if err != nil {
-		return fmt.Errorf("GeneratateCpuCSV %d", resp.StatusCode)
+		return nil, fmt.Errorf("GeneratateCpuCSV %d", resp.StatusCode)
 	}
 
 	loc, err := uploader.Upload(s3config, bytes.NewBuffer(csvData), filename, false)
 	if err != nil {
-		return fmt.Errorf("uploading to s3 error: %s", err)
+		return nil, fmt.Errorf("uploading to s3 error: %s", err)
 	}
 	fmt.Fprintf(os.Stdout, "csv uploaded to %s\n", loc)
 
-	return nil
+	return csvData, nil
 }

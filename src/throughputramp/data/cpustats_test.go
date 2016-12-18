@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var singlePercentageCSV = `timeStamp,percentage
+var singlePercentageCSV = `timestamp,percentage
 2016-12-15 15:00:47.575579693 -0800 PST,12.358514
 2016-12-15 15:00:47.672438722 -0800 PST,20.779221`
 
@@ -16,7 +16,7 @@ var singlePercentageJSON = `[
 {"TimeStamp":"2016-12-15T15:00:47.672438722-08:00","Percentage":[20.77922077922078]}
 ]`
 
-var multiplePercentageCSV = `timeStamp,percentage,percentage
+var multiplePercentageCSV = `timestamp,percentage,percentage
 2016-12-15 15:00:47.575579693 -0800 PST,12.358514,13.358514
 2016-12-15 15:00:47.672438722 -0800 PST,20.779221,21.779221`
 
@@ -39,7 +39,7 @@ var _ = Describe("GenerateCpuCSV", func() {
 	})
 
 	It("returns an error if bad data passed", func() {
-		badData := `timeStamp, timeStamp`
+		badData := `timestamp, timestamp`
 		emptyByte, err := data.GenerateCpuCSV([]byte(badData))
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("marshaling data"))

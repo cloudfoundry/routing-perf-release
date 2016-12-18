@@ -11,7 +11,7 @@ import (
 )
 
 type cpuStat struct {
-	TimeStamp  time.Time `json:"TimeStamp"`
+	TimeStamp  time.Time `json:"Timestamp"`
 	Percentage []float64 `json:"Percentage"`
 }
 
@@ -39,7 +39,7 @@ func GenerateCpuCSV(body []byte) ([]byte, error) {
 	}
 	buf := bytes.NewBuffer(nil)
 
-	buf.WriteString("timeStamp" + strings.Repeat(",percentage", len(results[0].Percentage)))
+	buf.WriteString("timestamp" + strings.Repeat(",percentage", len(results[0].Percentage)))
 	for _, p := range results {
 		buf.WriteByte('\n')
 		buf.WriteString(p.string())
