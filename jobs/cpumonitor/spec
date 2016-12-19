@@ -10,3 +10,6 @@ properties:
   cpumonitor.run_interval:
     description: Interval for monitoring cpu metrics
     default: 1000
+  cpumonitor.per_cpu:
+    description: the percentage of cpu used either per CPU or combined
+    default: false

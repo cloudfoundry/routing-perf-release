@@ -13,7 +13,7 @@ case $1 in
 
     echo $$ > $PIDFILE
 
-    exec /var/vcap/packages/cpumonitor/bin/cpumonitor -port 9999 -runInterval <%= p("cpumonitor.run_interval")%> \
+	exec /var/vcap/packages/cpumonitor/bin/cpumonitor -port 9999 -perCpu=<%= p("cpumonitor.per_cpu")%> -runInterval=<%= p("cpumonitor.run_interval")%> \
       >>  $LOG_DIR/cpumonitor.stdout.log \
       2>> $LOG_DIR/cpumonitor.stderr.log
 
