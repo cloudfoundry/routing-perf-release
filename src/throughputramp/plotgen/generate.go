@@ -6,7 +6,7 @@ const generate_r = `
 #
 # Attributed to Adrian Cockroft, https://github.com/adrianco/headroom-plot
 #
-chp <- function(throughput,response, q=0.95, qx=F, xl="Throughput",yl="Response",tl="Throughput Over Time", ml="Headroom Plot", fit=T, max=T, splits=0) {
+chp <- function(throughput,response, cpufile, in_file, compare_file, q=0.95, qx=F, xl="Throughput",yl="Response",tl="Throughput Over Time", ml="Headroom Plot", fit=T, max=T, splits=0) {
   # remove zero throughput and response values
   nonzer <- (throughput != 0) & (response != 0)  # array of true/false
   y <- response[nonzer]
@@ -31,8 +31,12 @@ chp <- function(throughput,response, q=0.95, qx=F, xl="Throughput",yl="Response"
   xrange <- c(0.0,xbl)
   yrange <- c(0.0,ybl)
   xlen <- length(x)
-  # make a multi-region layout
-  nf <- layout(matrix(c(1,3,5,4,2,5),2,3,byrow=TRUE), c(3,1,3), c(1,3), TRUE)
+  # make a multi-region layout. Each number in the matrix corresponds to plot panel. O means no plot there
+  #      [,1] [,2] [,3]
+  # [1,]    1    3    5
+  # [2,]    4    2    0
+  grid_layout_matrix <- matrix(c(1,3,5,4,2,0),2,3,byrow=TRUE)
+  nf <- layout(grid_layout_matrix, c(3,1), c(1,3), TRUE)
   layout.show(nf)
   # set plot margins for throughput histogram and plot it
   par(mar=c(0,4,3,0))
@@ -44,7 +48,7 @@ chp <- function(throughput,response, q=0.95, qx=F, xl="Throughput",yl="Response"
   barplot(yhist$counts, axes=FALSE, xlim=c(0,max(yhist$counts)),
       ylim=c(ycl*0.00-ybf/((ybl-ybf)/(ycl-0.5)),ycl*1.00),
       space=0, horiz=TRUE)
-  # set plot margins for time series plot
+  # set plot margins for throughput time series plot
   par(mar=c(2.5,1.7,3,1))
   plot(x, main=tl, cex.axis=0.8, cex.main=0.8, type="S")
   if (splits > 0) {
@@ -83,6 +87,17 @@ chp <- function(throughput,response, q=0.95, qx=F, xl="Throughput",yl="Response"
       points(x[(1+n*step):min((n+1)*step,xlen)],y[(1+n*step):min((n+1)*step,xlen)], xlim=xrange, ylim=yrange, col=4+n)
     }
   }
+  legend <- c(basename(in_file))
+  if (!is.na(compare_file)) {
+    compare_data = read.delim(compare_file, header=T, sep=",")
+    plot_old_fit(compare_data$throughput, compare_data$latency)
+    legend <- c(legend,basename(compare_file))
+  }
+  legend("bottomright", inset=0.05, legend, lty=c(1,1), col=c("steelblue1", "red"))
+  # plot the cpu portion in panel 5
+  if (!is.na(cpufile)) {
+    plot_cpu(cpufile)
+  }
 }
 
 plot_cpu <- function(file){
@@ -96,9 +111,9 @@ plot_cpu <- function(file){
   for(i in 2:allData){
     y_range <- c(y_range,data[[i]])
   }
-
   yrange <- range(0,y_range)
-  plot(percentage1Vector, type="n",ylim=yrange, xlab="timestamp", ylab="percentage")
+  par(mar=c(2.5,1.7,3,1))
+  plot(percentage1Vector, main="CPU over Time", cex.axis=0.8, cex.main=0.8, type="n",xlab="timestamp", ylab="percentage")
 
   legendNames <-c()
   legendColours <-c()
@@ -112,7 +127,6 @@ plot_cpu <- function(file){
   }
 
   # plot title
-  #title(main="CPU percentage(s)", col.main="blue")
   # no need to display legend if single cpu sample provided
   if (allData > 2){
     xcor <- length(data$timestamp) - 5
@@ -145,17 +159,7 @@ generate <- function(in_file, out_file, compare_file, cpu_file) {
   compare_data = NA
 
   png(out_file, width=1200, height=1200, res=120)
-  chp(input_data$throughput, input_data$latency)
-  legend <- c(basename(in_file))
-  if (!is.na(compare_file)) {
-    compare_data = read.delim(compare_file, header=T, sep=",")
-    plot_old_fit(compare_data$throughput, compare_data$latency)
-    legend <- c(legend,basename(compare_file))
-  }
-  legend("bottomright", inset=0.02, legend, lty=c(1,1), col=c("steelblue1", "red"))
-  if (!is.na(cpu_file)) {
-    plot_cpu(cpu_file)
-  }
+  chp(input_data$throughput, input_data$latency, cpu_file, in_file, compare_file)
   dev.off()
 }
 
