@@ -127,9 +127,10 @@ SSH onto the loadtest source VM, install r, and run the test
 ```
 bosh ssh http_performance_tests/0 --gateway_user vcap --gateway_host bosh.myenv.com --gateway_identity_file bosh.pem
 sudo -i
+mv /tmp/throughputramp .
 apt-get install r-base -y
 export PATH=$PATH:/var/vcap/packages/hey/bin
-/tmp/throughputramp -access-key-id REDACTED -secret-access-key REDACTED -bucket-name REDACTED -s3-region us-east-1 -q 100 -n 10000 -lower-concurrency 1 -upper-concurrency 40 -concurrency-step 1 -x http://ROUTER_IP http://gostatic-0.foo.com
+./throughputramp -access-key-id REDACTED -secret-access-key REDACTED -bucket-name REDACTED -s3-region us-east-1 -q 100 -n 10000 -lower-concurrency 1 -upper-concurrency 40 -concurrency-step 1 -x http://ROUTER_IP http://gostatic-0.foo.com
 ```
 
 The script will upload a graph of the results to an S3 bucket, specified by options `-access-key-id`, `-secret-access-key`, `-bucket-name`, and `-s3-region`
