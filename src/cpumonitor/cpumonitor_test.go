@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"cpumonitor/stats"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
@@ -51,19 +52,22 @@ var _ = Describe("Cpumonitor", func() {
 		})
 	})
 	Context("when port and runInterval is passed", func() {
+		var cpuPort int
 		BeforeEach(func() {
-			session = runCpumonitor(6530, 100, 1, false)
+			cpuPort = 6000 + GinkgoParallelNode()
+			session = runCpumonitor(cpuPort, 100, 1, false)
 			//wait for server to collect stats
 			time.Sleep(time.Second * 1)
 
-			Eventually(session.Err).Should(gbytes.Say("cpumonitor listening on 6530"))
+			Eventually(session.Err).Should(gbytes.Say(fmt.Sprintf("cpumonitor listening on %d", cpuPort)))
 		})
 
 		It("returns an http error if start is called multiple times", func() {
-			resp, err := http.Get("http://localhost:6530/start")
+			cpuStartURL := fmt.Sprintf("http://localhost:%d/start", cpuPort)
+			resp, err := http.Get(cpuStartURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-			resp, err = http.Get("http://localhost:6530/start")
+			resp, err = http.Get(cpuStartURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 			body, err := ioutil.ReadAll(resp.Body)
@@ -75,7 +79,8 @@ var _ = Describe("Cpumonitor", func() {
 		It("returns http error if stop called without calling start", func() {
 			var resp *http.Response
 			var err error
-			resp, err = http.Get("http://localhost:6530/stop")
+			cpuStopURL := fmt.Sprintf("http://localhost:%d/stop", cpuPort)
+			resp, err = http.Get(cpuStopURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 			var body []byte
@@ -85,11 +90,13 @@ var _ = Describe("Cpumonitor", func() {
 		})
 
 		It("returns CPU stats", func() {
-			resp, err := http.Get("http://localhost:6530/start")
+			cpuStartURL := fmt.Sprintf("http://localhost:%d/start", cpuPort)
+			resp, err := http.Get(cpuStartURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			resp, err = http.Get("http://localhost:6530/stop")
+			cpuStopURL := fmt.Sprintf("http://localhost:%d/stop", cpuPort)
+			resp, err = http.Get(cpuStopURL)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
