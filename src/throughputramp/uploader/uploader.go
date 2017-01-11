@@ -38,7 +38,7 @@ func (conf *Config) Validate() error {
 	return nil
 }
 
-func Upload(conf *Config, file io.Reader, fileName string, isPNG bool) (string, error) {
+func Upload(conf *Config, file io.Reader, fileName string) (string, error) {
 	s3Config := aws.NewConfig().
 		WithCredentials(credentials.NewStaticCredentials(conf.AccessKeyID, conf.SecretAccessKey, ""))
 
@@ -60,10 +60,6 @@ func Upload(conf *Config, file io.Reader, fileName string, isPNG bool) (string, 
 		Bucket: &conf.BucketName,
 		Key:    &fileName,
 		Body:   file,
-	}
-
-	if isPNG {
-		upParams.ContentType = aws.String("image/png")
 	}
 
 	result, err := uploader.Upload(upParams)

@@ -3,7 +3,6 @@ package main_test
 import (
 	"io/ioutil"
 	"net/http"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -14,15 +13,6 @@ import (
 	"github.com/tedsuo/ifrit/ginkgomon"
 )
 
-const comparisonCSV = `throughput,latency
-100, 0.01
-200, 0.02
-300, 0.03
-400, 0.04
-500, 0.05
-600, 0.06
-`
-
 var cpuMonitorData = `
 [{"Percentage":[12.358514295296388, 19.1234123],"Timestamp":"2016-12-15T15:00:47.575579693-08:00"},
 {"Percentage":[20.77922077922078, 22.23345],"Timestamp":"2016-12-15T15:00:47.672438722-08:00"}]
@@ -30,20 +20,19 @@ var cpuMonitorData = `
 
 var _ = Describe("Throughputramp", func() {
 	var (
-		runner             *ginkgomon.Runner
-		process            ifrit.Process
-		testServer         *ghttp.Server
-		testS3Server       *ghttp.Server
-		comparisonFilePath string
-		bodyChan           chan []byte
-		runnerArgs         Args
-		bodyTestHandler    http.HandlerFunc
+		runner          *ginkgomon.Runner
+		process         ifrit.Process
+		testServer      *ghttp.Server
+		testS3Server    *ghttp.Server
+		bodyChan        chan []byte
+		runnerArgs      Args
+		bodyTestHandler http.HandlerFunc
 	)
 
 	Context("when correct arguments are used", func() {
 		BeforeEach(func() {
 			url := "http://example.com"
-			testServer = ghttp.NewServer()
+			testServer = ghttp.NewUnstartedServer()
 			handler := ghttp.CombineHandlers(
 				func(rw http.ResponseWriter, req *http.Request) {
 					Expect(req.Host).To(Equal(strings.TrimPrefix(url, "http://")))
@@ -52,16 +41,11 @@ var _ = Describe("Throughputramp", func() {
 			)
 			testServer.AppendHandlers(handler)
 			testServer.AllowUnhandledRequests = true
+			testServer.Start()
 
 			bodyChan = make(chan []byte, 3)
 
 			testS3Server = ghttp.NewServer()
-
-			comparisonFile, err := ioutil.TempFile("", "comparison.csv")
-			Expect(err).ToNot(HaveOccurred())
-
-			comparisonFile.WriteString(comparisonCSV)
-			comparisonFilePath = comparisonFile.Name()
 
 			bodyTestHandler = ghttp.CombineHandlers(
 				ghttp.VerifyHeaderKV("X-Amz-Acl", "public-read"),
@@ -76,10 +60,6 @@ var _ = Describe("Throughputramp", func() {
 			)
 			testS3Server.AppendHandlers(
 				bodyTestHandler,
-				ghttp.CombineHandlers(
-					ghttp.VerifyContentType("image/png"),
-					bodyTestHandler,
-				),
 			)
 
 			runnerArgs = Args{
@@ -94,7 +74,6 @@ var _ = Describe("Throughputramp", func() {
 				Endpoint:         testS3Server.URL(),
 				AccessKeyID:      "ABCD",
 				SecretAccessKey:  "ABCD",
-				ComparisonFile:   comparisonFilePath,
 			}
 		})
 
@@ -108,8 +87,6 @@ var _ = Describe("Throughputramp", func() {
 			testServer.Close()
 			testS3Server.Close()
 			close(bodyChan)
-			err := os.Remove(comparisonFilePath)
-			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("ramps up throughput over multiple tests", func() {
@@ -140,12 +117,8 @@ var _ = Describe("Throughputramp", func() {
 				)
 
 				runnerArgs.CPUMonitorURL = cpumonitorServer.URL()
-				testS3Server.SetHandler(1, bodyTestHandler)
 				testS3Server.AppendHandlers(
-					ghttp.CombineHandlers(
-						ghttp.VerifyContentType("image/png"),
-						bodyTestHandler,
-					),
+					bodyTestHandler,
 				)
 			})
 			AfterEach(func() {
@@ -160,6 +133,8 @@ var _ = Describe("Throughputramp", func() {
 				Eventually(process.Wait(), "5s").Should(Receive())
 				Expect(runner.ExitCode()).To(Equal(0))
 
+				Eventually(bodyChan).Should(Receive())
+
 				var cpuCsvBytes []byte
 				Eventually(bodyChan).Should(Receive(&cpuCsvBytes))
 				Expect(cpuCsvBytes).ToNot(BeEmpty())
@@ -167,43 +142,14 @@ var _ = Describe("Throughputramp", func() {
 			})
 		})
 
-		It("uploads the csv and plot to the s3 bucket", func() {
+		It("uploads the csv to the s3 bucket", func() {
 			Eventually(process.Wait(), "5s").Should(Receive())
 			Expect(runner.ExitCode()).To(Equal(0))
 
 			var csvBytes []byte
 			Eventually(bodyChan).Should(Receive(&csvBytes))
 			Expect(csvBytes).ToNot(BeEmpty())
-			Expect(string(csvBytes)).To(ContainSubstring("throughput,latency\n"))
-
-			var pngBytes []byte
-			Eventually(bodyChan).Should(Receive(&pngBytes))
-			Expect(pngBytes).ToNot(BeEmpty())
-			Expect(http.DetectContentType(pngBytes)).To(Equal("image/png"))
-		})
-
-		Context("but with no comparison data argument", func() {
-			BeforeEach(func() {
-				runnerArgs.ComparisonFile = ""
-				runner = NewThroughputRamp(binPath, runnerArgs)
-			})
-
-			It("does not fail", func() {
-				Eventually(process.Wait(), "5s").Should(Receive())
-				Expect(runner.ExitCode()).To(Equal(0))
-			})
-		})
-
-		Context("but with an incorrect comparison data argument", func() {
-			BeforeEach(func() {
-				runnerArgs.ComparisonFile = "/does/not/exist"
-				runner = NewThroughputRamp(binPath, runnerArgs)
-			})
-
-			It("exits 1 with an error", func() {
-				Eventually(process.Wait(), "5s").Should(Receive())
-				Expect(runner.ExitCode()).To(Equal(1))
-			})
+			Expect(string(csvBytes)).To(ContainSubstring("start-time,response-time\n"))
 		})
 	})
 

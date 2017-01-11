@@ -131,24 +131,13 @@ var _ = Describe("Uploader", func() {
 				close(bodyChan)
 			})
 			It("can upload a publicly-readable file S3 with retries", func() {
-				dest, err := uploader.Upload(uploadConfig, file, fileName, false)
+				dest, err := uploader.Upload(uploadConfig, file, fileName)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(dest).To(Equal(testS3Server.URL() + "/" + bucketName + "/" + fileName))
 				var bodyBytes []byte
 				Eventually(bodyChan).Should(Receive(&bodyBytes))
 				Expect(string(bodyBytes)).To(Equal("test body"))
 			})
-		})
-		Context("with a content type specified", func() {
-			BeforeEach(func() {
-				testS3Server.AppendHandlers(ghttp.VerifyContentType("image/png"))
-			})
-			It("can upload a publicly-readable file S3 with retries", func() {
-				dest, err := uploader.Upload(uploadConfig, file, fileName, true)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(dest).To(Equal(testS3Server.URL() + "/" + bucketName + "/" + fileName))
-			})
-
 		})
 	})
 })

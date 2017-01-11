@@ -89,19 +89,4 @@ var _ = Describe("Data", func() {
 			})
 		})
 	})
-
-	Describe("Sort", func() {
-		It("sorts the data by start time", func() {
-			p1 := &data.Point{time.Unix(1478020922, 270882000), time.Duration(19100000)}
-			p2 := &data.Point{time.Unix(1478020922, 288598000), time.Duration(6300000)}
-			p3 := &data.Point{time.Unix(1478020923, 0), time.Duration(10000000)}
-			p4 := &data.Point{time.Unix(1478020922, 270864000), time.Duration(19900000)}
-
-			dataPoints := []*data.Point{p1, p2, p3, p4}
-
-			data.Sort(dataPoints)
-
-			Expect(dataPoints).To(Equal([]*data.Point{p4, p1, p2, p3}))
-		})
-	})
 })

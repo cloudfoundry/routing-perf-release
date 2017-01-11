@@ -1,9 +1,10 @@
 package data
 
 import (
+	"bytes"
 	"encoding/csv"
 	"errors"
-	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,7 +14,7 @@ type Point struct {
 	ResponseTime time.Duration
 }
 
-type points []*Point
+type Points []*Point
 
 // Parse will take in an input CSV string and return a slice of data points
 func Parse(input string) ([]*Point, error) {
@@ -34,6 +35,22 @@ func Parse(input string) ([]*Point, error) {
 	return fillDataPoints(records)
 }
 
+func (p *Point) string() string {
+	return p.StartTime.Format(time.RFC3339Nano) +
+		"," +
+		strconv.FormatFloat(p.ResponseTime.Seconds(), 'f', 6, 64)
+}
+
+func (p Points) GenerateCSV() []byte {
+	buf := bytes.NewBuffer(nil)
+	buf.WriteString("start-time,response-time")
+	for _, pt := range p {
+		buf.WriteByte('\n')
+		buf.WriteString(pt.string())
+	}
+	return buf.Bytes()
+}
+
 func fillDataPoints(records [][]string) ([]*Point, error) {
 	var dataPoints []*Point
 	for _, record := range records[1:] {
@@ -48,27 +65,4 @@ func fillDataPoints(records [][]string) ([]*Point, error) {
 		dataPoints = append(dataPoints, &Point{StartTime: startTime, ResponseTime: responseTime})
 	}
 	return dataPoints, nil
-}
-
-// Sort will sort the records in place by StartTime
-func Sort(records []*Point) {
-	sort.Sort(points(records))
-}
-
-// Len is the number of elements in the collection.
-func (p points) Len() int {
-	return len(p)
-}
-
-// Less reports whether the element with
-// index i should sort before the element with index j.
-func (p points) Less(i, j int) bool {
-	return p[j].StartTime.After(p[i].StartTime)
-}
-
-// Swap swaps the elements with indexes i and j.
-func (p points) Swap(i, j int) {
-	t := p[i]
-	p[i] = p[j]
-	p[j] = t
 }
