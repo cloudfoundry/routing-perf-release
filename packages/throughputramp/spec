@@ -1,0 +1,8 @@
+---
+name: throughputramp
+dependencies:
+  - golang
+  - hey
+files:
+  - throughputramp/**/*.go # gosub
+  - throughputramp/vendor/**/*.go # gosub

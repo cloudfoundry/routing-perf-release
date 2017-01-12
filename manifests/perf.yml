@@ -64,7 +64,26 @@ instance_groups:
         sleep_interval: 10
   networks:
   - name: default
-
+- name: throughputramp_tests
+  instances: 1
+  lifecycle: errand
+  vm_type: default
+  stemcell: trusty
+  azs:
+  - z1
+  networks:
+  - name: default
+  jobs:
+  - name: performance_tests
+    release: routing-perf
+    properties:
+      performance_tests:
+        proxy: GOROUTER_API_ADDRESS
+        url: http://gostatic-0.foo.com
+        access_key_id:
+        secret_access_key:
+        bucket_name:
+        cpu_monitor_url: http://CPU_monitor_ip:port
 - name: http_performance_tests
   instances: 1
   lifecycle: errand

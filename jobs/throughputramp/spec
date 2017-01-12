@@ -1,0 +1,23 @@
+---
+name: throughputramp
+templates:
+  run.erb: bin/run
+
+packages:
+  - throughputramp
+  - hey
+
+properties:
+  throughputramp.url:
+    description: Targeted backend for request
+  throughputramp.proxy:
+    description: proxy for request 
+  throughputramp.bucket_name:
+    description: Name of the bucket to which plots will be uploaded. 
+  throughputramp.access_key_id:
+    description: accessKeyId for the S3 service.
+  throughputramp.secret_access_key:
+    description: secretAccessKey for the S3 service. 
+  throughputramp.cpu_monitor_url:
+    description: Endpoint for monitoring CPU metrics.
+
