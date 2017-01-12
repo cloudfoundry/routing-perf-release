@@ -102,35 +102,32 @@ If you are deploying this release on any other IaaS's, you can update the
 `cloud_properties`. For more information, refer to the
 [BOSH documentation](http://bosh.io/docs).
 
-## Running the load tests manually
+## Running the load tests
 
-See [Get the code](#get-the-code)
-
-Build the loadtest script
+Deploy performance release on your environment. Run the below command
 
 ```
-cd routing-perf-release/src/throughputramp
-GOOS=linux GOARCH=amd64 go build .
+bosh run errand throughputramp
 ```
 
-Copy the binary onto your loadtest source VM
+Errand will upload CPU stats and performa results to an S3 bucket specified in the manifest.
+
+## Running Jupyter Notebook for displaying graphs
+
+1. Install [docker](https://docs.docker.com/)
+1. Verify the installation by running `docker -v`
+1. Create a directory and transfer CPU stats and performance test files. Copy file from $PWD/src/jupyter_notebook/Performance_Data.ipynb to your directory.
+1. Start your docker and run the below command.
 
 ```
-bosh target myenv
-bosh download manifest performance /tmp/performance.yml
-bosh deployment /tmp/performance.yml
-bosh scp http_performance_tests/0 --upload --gateway_user vcap --gateway_host bosh.myenv.com --gateway_identity_file bosh.pem /Users/pivotal/workspace/routing-perf-release/src/throughputramp/throughputramp /tmp
+docker run -it -p 8888:8888 -v REPLACE_WITH_DIR_PATH:/home/perf/work jupyter/scipy-notebook
 ```
 
-SSH onto the loadtest source VM, install r, and run the test
+1. Go to the token URL presented by Jupyter Notebook to start your session.
+1. If you have problem connecting to `localhost`, you could add `network` option to docker. You will have to use the IP on which is docker is running to connect.
 
 ```
-bosh ssh http_performance_tests/0 --gateway_user vcap --gateway_host bosh.myenv.com --gateway_identity_file bosh.pem
-sudo -i
-mv /tmp/throughputramp .
-apt-get install r-base -y
-export PATH=$PATH:/var/vcap/packages/hey/bin
-./throughputramp -access-key-id REDACTED -secret-access-key REDACTED -bucket-name REDACTED -s3-region us-east-1 -q 100 -n 10000 -lower-concurrency 1 -upper-concurrency 40 -concurrency-step 1 -x http://ROUTER_IP http://gostatic-0.foo.com
+docker run -it -p 8888:8888 -network=host -v REPLACE_WITH_DIR_PATH:/home/perf/work jupyter/scipy-notebook
 ```
 
-The script will upload a graph of the results to an S3 bucket, specified by options `-access-key-id`, `-secret-access-key`, `-bucket-name`, and `-s3-region`
+Note: If you are running docker on a VM, obtain the IP of docker using the command `docker-machine ls`.
