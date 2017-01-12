@@ -110,7 +110,7 @@ Deploy performance release on your environment. Run the below command
 bosh run errand throughputramp
 ```
 
-Errand will upload CPU stats and performa results to an S3 bucket specified in the manifest.
+Errand will upload CPU stats and performance results to an S3 bucket specified in the manifest.
 
 ## Running Jupyter Notebook for displaying graphs
 
