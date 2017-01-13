@@ -130,7 +130,7 @@ func runBenchmark(url,
 }
 
 func run(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]*data.Point, error) {
-	fmt.Fprintf(os.Stderr, "Running benchmark with %d requests, %d concurrency, and %d rate limit\n", numRequests, concurrentRequests, rateLimit)
+	fmt.Fprintf(os.Stdout, "Running benchmark with %d requests, %d concurrency, and %d rate limit\n", numRequests, concurrentRequests, rateLimit)
 	args := []string{
 		"-x", proxy,
 		"-n", strconv.Itoa(numRequests),

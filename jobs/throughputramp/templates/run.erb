@@ -1,7 +1,6 @@
 #!/bin/bash -ex
 
 RUN_DIR=/var/vcap/sys/run/throughputramp
-LOG_DIR=/var/vcap/sys/log/throughputramp
 
 mkdir -p $RUN_DIR $LOG_DIR
 chown -R vcap:vcap $RUN_DIR $LOG_DIR
@@ -13,8 +12,4 @@ exec /var/vcap/packages/throughputramp/bin/throughputramp -access-key-id <%= p("
 -bucket-name <%= p("throughputramp.bucket_name") %> -n 10000 -q 100 -lower-concurrency 1 -upper-concurrency 60 \
 -s3-region us-east-1 \
 -cpumonitor-url <%= p("throughputramp.cpu_monitor_url") %> \
--x http://<%= p("throughputramp.proxy") %>:80 <%= p("throughputramp.url") %> \
-  >>  $LOG_DIR/throughputramp.stdout.log \
-  2>> $LOG_DIR/throughputramp.stderr.log
-
-
+-x http://<%= p("throughputramp.proxy") %>:80 <%= p("throughputramp.url") %>
