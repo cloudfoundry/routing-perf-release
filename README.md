@@ -117,8 +117,9 @@ Errand will upload CPU stats and performance results to an S3 bucket specified i
 1. If you have not already done so, download this repo to your local machine.
 1. Install [Docker](https://docs.docker.com/) locally.
 1. Verify the installation by running `docker -v`.
-1. Create a directory and download CPU stats and performance test files from the
-   S3 bucket specified in the above section.
+1. Download CPU stats and performance test files from the S3 bucket specified in the above
+   section. Save these files into the `src/jupyter_notebook` folder in your local
+   `routing-perf-release` repo.
 1. Rename CPU stats file to `cpuStats.csv` and performance test file to
    `perfResults.csv`. Currently the notebook is configured to look for files
    with these names. Keep track of what the file names were before to provide
