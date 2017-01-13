@@ -7,9 +7,12 @@ packages:
   - cpumonitor
 
 properties:
+  cpumonitor.port:
+    description: Port that CPU Monitor should be running on.
+    default: 9999
   cpumonitor.run_interval:
     description: Interval for monitoring cpu metrics in milliseconds
     default: 10
   cpumonitor.per_cpu:
-    description: the percentage of cpu used either per CPU or combined
+    description: The percentage of cpu used either per CPU or combined
     default: false
