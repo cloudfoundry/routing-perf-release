@@ -13,6 +13,7 @@ blobs
 *.swp
 *~
 *#
+src/jupyter_notebook/.ipynb_checkpoints/*
 #*
 .cache
 pkg

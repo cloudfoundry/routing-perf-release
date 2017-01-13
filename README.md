@@ -112,22 +112,56 @@ bosh run errand throughputramp
 
 Errand will upload CPU stats and performance results to an S3 bucket specified in the manifest.
 
-## Running Jupyter Notebook for displaying graphs
+### Running Jupyter Notebook for displaying graphs
 
-1. Install [docker](https://docs.docker.com/)
-1. Verify the installation by running `docker -v`
-1. Create a directory and transfer CPU stats and performance test files. Copy file from $PWD/src/jupyter_notebook/Performance_Data.ipynb to your directory.
-1. Start your docker and run the below command.
+1. If you have not already done so, download this repo to your local machine.
+1. Install [Docker](https://docs.docker.com/) locally.
+1. Verify the installation by running `docker -v`.
+1. Create a directory and download CPU stats and performance test files from the
+   S3 bucket specified in the above section.
+1. Rename CPU stats file to `cpuStats.csv` and performance test file to
+   `perfResults.csv`. Currently the notebook is configured to look for files
+   with these names. Keep track of what the file names were before to provide
+   a reference point for multiple investigations.
+1. Run the below command to start the Docker container. Replace
+   `PATH_TO_ROUTING_PERF_RELEASE` with the actual path to this repo on your
+   local machine. The `-v LOCAL_DIR:CONTAINER_DIR` command will mount a local
+   directory on your machine to a volume located at `CONTAINER_DIR` inside
+   this Docker container.
 
-```
-docker run -it -p 8888:8888 -v REPLACE_WITH_DIR_PATH:/home/perf/work jupyter/scipy-notebook
-```
+   ```
+   docker run -it -p 8888:8888 -v PATH_TO_ROUTING_PERF_RELEASE/src/jupyter_notebook:/home/jovyan/work jupyter/scipy-notebook
+   ```
 
-1. Go to the token URL presented by Jupyter Notebook to start your session.
-1. If you have problem connecting to `localhost`, you could add `network` option to docker. You will have to use the IP on which is docker is running to connect.
+1. The `docker` command will present a token URL that you should copy/paste
+   into a browser to start the notebook session.
+   For example:
 
-```
-docker run -it -p 8888:8888 -network=host -v REPLACE_WITH_DIR_PATH:/home/perf/work jupyter/scipy-notebook
-```
+   ```
+   ...
+   [I 19:17:28.023 NotebookApp] The Jupyter Notebook is running at: http://[all ip addresses on your system]:8888/?token=1ce634bd85e4101a74d4114880642381e4f7244af7843093
+   [I 19:17:28.023 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+   [C 19:17:28.023 NotebookApp]
 
-Note: If you are running docker on a VM, obtain the IP of docker using the command `docker-machine ls`.
+       Copy/paste this URL into your browser when you connect for the first time,
+       to login with a token:
+           http://localhost:8888/?token=1ce634bd85e4101a74d4114880642381e4f7244af7843093
+
+   ```
+
+1. Click on the file named `Performance_Data.ipynb`.
+1. Click on the title menu `Cell` and click on `Run All` to regenerate the
+   notebook outputs.
+1. To compare the current data set with another follow these instructions
+   1. Add CPU stats and performance results to folder $routing-perf-release-path/src/jupyter_notebook/
+   1. Rename CPU stats file to `old_cpuStats.csv` and performance test file to `old_perfResults.csv`.
+   1. Go to the Notebook server page and update variable `compareDatasets` to `True` and rerun all the cells
+
+
+### Troubleshooting Jupyter Notebook
+
+1. If you have problem connecting to `localhost:8888`, you could add the
+   `-network=host` flag to the above Docker command. You will have to use the
+   IP of the Docker host instead of `localhost` to connect to the Notebook
+   server. To obtain the IP address of the Docker host, run the command
+   `docker-machine ls`.
