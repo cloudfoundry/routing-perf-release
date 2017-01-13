@@ -14,7 +14,7 @@ import (
 // security??
 
 var (
-	port        = flag.Int("port", 8080, "port for the server")
+	port        = flag.Int("port", 9999, "port for the server")
 	runInterval = flag.Int("runInterval", 1000, "Sampling interval, how ofter to call CPU stats in millisecond")
 	cpuInterval = flag.Int("cpuInterval", 0, "Time between each CPU stat in second, if 0 is given it will compare the current cpu times against the last call")
 	perCPU      = flag.Bool("perCpu", false, "Percent calculates the percentage of cpu used either per CPU or combined")
