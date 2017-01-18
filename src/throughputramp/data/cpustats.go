@@ -24,7 +24,8 @@ func (i *cpuStat) percentageString() string {
 }
 
 func (i *cpuStat) string() string {
-	return fmt.Sprintf("%s,%v", i.TimeStamp, i.percentageString())
+	timeStamp := i.TimeStamp.UTC().Format(time.RFC3339Nano)
+	return fmt.Sprintf("%s,%v", timeStamp, i.percentageString())
 }
 
 func GenerateCpuCSV(body []byte) ([]byte, error) {

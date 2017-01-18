@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/ghttp"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
@@ -149,7 +150,10 @@ var _ = Describe("Throughputramp", func() {
 			var csvBytes []byte
 			Eventually(bodyChan).Should(Receive(&csvBytes))
 			Expect(csvBytes).ToNot(BeEmpty())
-			Expect(string(csvBytes)).To(ContainSubstring("start-time,response-time\n"))
+			b := gbytes.BufferWithBytes(csvBytes)
+			Expect(b).To(gbytes.Say(`start-time,response-time\n`))
+			// Make sure the second csv header appears as well
+			Expect(b).To(gbytes.Say(`\nstart-time,response-time\n`))
 		})
 	})
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -67,10 +68,10 @@ func main() {
 
 }
 
-func uploadCSV(s3config *uploader.Config, csvData []byte, cpuCsv []byte) {
+func uploadCSV(s3config *uploader.Config, csvData io.Reader, cpuCsv []byte) {
 	timeString := time.Now().UTC().Format(time.RFC3339)
 
-	loc, err := uploader.Upload(s3config, bytes.NewBuffer(csvData), timeString+".csv")
+	loc, err := uploader.Upload(s3config, csvData, timeString+".csv")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err)
 		os.Exit(1)
@@ -95,7 +96,7 @@ func runBenchmark(url,
 	lowerConcurrency,
 	upperConcurrency,
 	concurrencyStep,
-	threashold int,
+	threshold int,
 	uploaderConfig *uploader.Config) {
 
 	if cpumonitorURL != "" {
@@ -105,15 +106,19 @@ func runBenchmark(url,
 		}
 	}
 
-	var dataPoints data.Points
+	benchmarkData := new(bytes.Buffer)
 	for i := lowerConcurrency; i <= upperConcurrency; i += concurrencyStep {
-		points, benchmarkErr := run(url, proxy, numRequests, i, threashold)
+		heyData, benchmarkErr := run(url, proxy, numRequests, i, threshold)
 		if benchmarkErr != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", benchmarkErr)
 			os.Exit(1)
 		}
 
-		dataPoints = append(dataPoints, points...)
+		_, writeErr := benchmarkData.Write(heyData)
+		if benchmarkErr != nil {
+			fmt.Fprintf(os.Stderr, "Buffer error: %s\n", writeErr)
+			os.Exit(1)
+		}
 	}
 
 	var cpuCsv []byte
@@ -125,11 +130,11 @@ func runBenchmark(url,
 			os.Exit(1)
 		}
 	}
-	dataPointCsv := dataPoints.GenerateCSV()
-	uploadCSV(uploaderConfig, dataPointCsv, cpuCsv)
+
+	uploadCSV(uploaderConfig, benchmarkData, cpuCsv)
 }
 
-func run(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]*data.Point, error) {
+func run(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]byte, error) {
 	fmt.Fprintf(os.Stdout, "Running benchmark with %d requests, %d concurrency, and %d rate limit\n", numRequests, concurrentRequests, rateLimit)
 	args := []string{
 		"-x", proxy,
@@ -144,13 +149,7 @@ func run(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]*
 	if err != nil {
 		return nil, fmt.Errorf("hey error: %s\nData:\n%s", err, string(heyData))
 	}
-
-	dataPoints, err := data.Parse(string(heyData))
-	if err != nil {
-		return nil, fmt.Errorf("parse error: %s\nData:\n%s", err, string(heyData))
-	}
-
-	return dataPoints, nil
+	return heyData, nil
 }
 
 func usageAndExit() {

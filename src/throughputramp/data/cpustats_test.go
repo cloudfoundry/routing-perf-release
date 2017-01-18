@@ -8,8 +8,8 @@ import (
 )
 
 var singlePercentageCSV = `timestamp,percentage
-2016-12-15 15:00:47.575579693 -0800 PST,12.358514
-2016-12-15 15:00:47.672438722 -0800 PST,20.779221`
+2016-12-15T23:00:47.575579693Z,12.358514
+2016-12-15T23:00:47.672438722Z,20.779221`
 
 var singlePercentageJSON = `[
 {"TimeStamp":"2016-12-15T15:00:47.575579693-08:00","Percentage":[12.358514295296388]},
@@ -17,8 +17,8 @@ var singlePercentageJSON = `[
 ]`
 
 var multiplePercentageCSV = `timestamp,percentage,percentage
-2016-12-15 15:00:47.575579693 -0800 PST,12.358514,13.358514
-2016-12-15 15:00:47.672438722 -0800 PST,20.779221,21.779221`
+2016-12-15T23:00:47.575579693Z,12.358514,13.358514
+2016-12-15T23:00:47.672438722Z,20.779221,21.779221`
 
 var multiplePercentageJSON = `[
 {"TimeStamp":"2016-12-15T15:00:47.575579693-08:00","Percentage":[12.358514295296388,13.358514295296388]},
@@ -46,7 +46,7 @@ var _ = Describe("GenerateCpuCSV", func() {
 		Expect(emptyByte).To(BeNil())
 	})
 
-	Context("CSV format single percentage", func() {
+	Context("when formatting CSV with single percentages", func() {
 		It("returns correctly formatted CSV output", func() {
 			result, err := data.GenerateCpuCSV([]byte(singlePercentageJSON))
 			Expect(err).ToNot(HaveOccurred())
@@ -54,7 +54,7 @@ var _ = Describe("GenerateCpuCSV", func() {
 		})
 	})
 
-	Context("CSV format multiple Percentagent", func() {
+	Context("when formatting CSV with multiple percentages", func() {
 		It("returns correctly formatted CSV output", func() {
 			result, err := data.GenerateCpuCSV([]byte(multiplePercentageJSON))
 			Expect(err).ToNot(HaveOccurred())
