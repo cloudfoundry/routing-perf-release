@@ -19,6 +19,7 @@ This release will deploy:
   cd ~/workspace
   git clone https://github.com/cloudfoundry-incubator/routing-perf-release.git
   cd routing-perf-release/
+  ./scripts/update
   ```
 
 1. Automate `$GOPATH` and `$PATH` setup
@@ -63,6 +64,7 @@ This release will deploy:
 1. Create and upload the release
   ```sh
   cd ~/workspace/routing-perf-release/
+  ./scripts/update
   bosh create release
   bosh -n upload release
   ```
