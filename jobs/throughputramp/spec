@@ -20,4 +20,8 @@ properties:
     description: secretAccessKey for the S3 service. 
   throughputramp.cpu_monitor_url:
     description: Endpoint for monitoring CPU metrics.
+  throughputramp.upper_concurrency:
+    description: Upper concurrency limit.
+  throughputramp.lower_concurrency:
+    description: Lower concurrency limit.
 
