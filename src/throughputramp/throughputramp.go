@@ -100,7 +100,11 @@ func runBenchmark(url,
 	uploaderConfig *uploader.Config) {
 
 	if cpumonitorURL != "" {
-		if err := startCPUMonitor(cpumonitorURL); err != nil {
+		_, err := stopCPUMonitor(cpumonitorURL)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Ignoring err in stopping CPU Monitor: %s\n", err)
+		}
+		if err = startCPUMonitor(cpumonitorURL); err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
@@ -124,7 +128,7 @@ func runBenchmark(url,
 	var cpuCsv []byte
 	if cpumonitorURL != "" {
 		var err error
-		cpuCsv, err = stopCPUMonitor(cpumonitorURL, uploaderConfig)
+		cpuCsv, err = stopCPUMonitor(cpumonitorURL)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
@@ -171,7 +175,7 @@ func startCPUMonitor(url string) error {
 	return nil
 }
 
-func stopCPUMonitor(url string, s3config *uploader.Config) ([]byte, error) {
+func stopCPUMonitor(url string) ([]byte, error) {
 	startURL := fmt.Sprintf("http://%s/stop", url)
 	resp, err := http.Get(startURL)
 	if err != nil {

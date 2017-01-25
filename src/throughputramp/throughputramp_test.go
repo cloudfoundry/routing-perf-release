@@ -100,6 +100,7 @@ var _ = Describe("Throughputramp", func() {
 			var (
 				cpumonitorServer *ghttp.Server
 			)
+
 			BeforeEach(func() {
 				cpumonitorServer = ghttp.NewServer()
 
@@ -107,6 +108,10 @@ var _ = Describe("Throughputramp", func() {
 				header.Add("Content-Type", "application/json")
 
 				cpumonitorServer.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("GET", "/stop"),
+						ghttp.RespondWith(http.StatusOK, cpuMonitorData, header),
+					),
 					ghttp.CombineHandlers(
 						ghttp.VerifyRequest("GET", "/start"),
 						ghttp.RespondWith(http.StatusOK, nil),
@@ -122,12 +127,15 @@ var _ = Describe("Throughputramp", func() {
 					bodyTestHandler,
 				)
 			})
+
 			AfterEach(func() {
 				cpumonitorServer.Close()
 			})
+
 			It("calls cpumonitor server start & stop endpoints", func() {
 				Eventually(process.Wait(), "5s").Should(Receive())
-				Expect(cpumonitorServer.ReceivedRequests()).To(HaveLen(2))
+				//stop, start, stop
+				Expect(cpumonitorServer.ReceivedRequests()).To(HaveLen(3))
 			})
 
 			It("uploads the csv of cpuStats to s3 bucket", func() {
