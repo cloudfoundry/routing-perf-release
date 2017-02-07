@@ -1,14 +1,17 @@
 # Routing Performance Release
 
 ## About
-A BOSH release containing benchmarking tools and utilities to setup the
-performance testing for the [gorouter](https://github.com/cloudfoundry/gorouter)
-and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router).
+A BOSH release contains tools for running performance tests against the [gorouter](https://github.com/cloudfoundry/gorouter)
+and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router). Gorouter is typically deployed with [cf-release](https://github.com/cloudfoundry/cf-release) and TCP Router with [routing-release](https://github.com/cloudfoundry-incubator/routing-release).
 
-This release will deploy:
-- a static backend app that returns 1kB of static data by default (configurable using `gostatic.response_size` property)
-- a VM for running the load test
-- processes that populate the routing table for both routers with test data
+This release will deploy
+
+- a BOSH errand called `throughputramp` that runs a long-running "ramp up" load test in which 10,000 requests are sent to the static app through Gorouter from one client thread, then concurrency is incrementally scaled to 60 client threads, with 10,000 requests sent at each step. 
+- a VM running job `performance_tests` that will run a load test with fixed concurrency against Gorouter or TCP Router
+- a VM running job `http_route_populator` that registers HTTP routes via NATS (deployment of NATS is a prerequisite)
+- a VM running job `tcp_route_populator` that registers TCP routes via Routing API (deployment of Routing API is a prerequisite)
+- a VM running `gostatic`, a static go application that provides the backend to which the routers forward requests. Response size is 1KB by default (configurable using `gostatic.response_size` property)
+
 
 ## Get the code
 
