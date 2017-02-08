@@ -32,7 +32,7 @@ var (
 	accessKeyID      = flag.String("access-key-id", "", "AccessKeyID for the S3 service.")
 	secretAccessKey  = flag.String("secret-access-key", "", "SecretAccessKey for the S3 service.")
 	cpuMonitorURL    = flag.String("cpumonitor-url", "", "Endpoint for monitoring CPU metrics")
-	LocalCSV         = flag.String("local-csv", "", "Stores csv locally to a specified directory when the flag is set")
+	localCSV         = flag.String("local-csv", "", "Stores csv locally to a specified directory when the flag is set")
 )
 
 func main() {
@@ -92,14 +92,14 @@ func uploadCSV(s3config *uploader.Config, csvData io.Reader, cpuCsv []byte) {
 		fmt.Fprintf(os.Stdout, "cpu csv uploaded to %s\n", loc)
 	}
 
-	if *LocalCSV != "" {
-		perfResult := filepath.Join(*LocalCSV, csvDataFile)
+	if *localCSV != "" {
+		perfResult := filepath.Join(*localCSV, csvDataFile)
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(csvData)
 		WriteFile(perfResult, buf.Bytes())
 
 		if len(cpuCsv) != 0 {
-			cpuResult := filepath.Join(*LocalCSV, cpuFilename)
+			cpuResult := filepath.Join(*localCSV, cpuFilename)
 			WriteFile(cpuResult, cpuCsv)
 		}
 	}

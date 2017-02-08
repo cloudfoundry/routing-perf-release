@@ -103,7 +103,7 @@ var _ = Describe("Throughputramp", func() {
 				var err error
 				dir, err = ioutil.TempDir("", "test")
 				Expect(err).NotTo(HaveOccurred())
-				runnerArgs.LocalCSV = dir
+				runnerArgs.localCSV = dir
 				cpumonitorServer := ghttp.NewServer()
 
 				header := make(http.Header)

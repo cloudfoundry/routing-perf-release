@@ -36,7 +36,7 @@ type Args struct {
 	AccessKeyID      string
 	SecretAccessKey  string
 	CPUMonitorURL    string
-	LocalCSV         string
+	localCSV         string
 }
 
 func (args Args) ArgSlice() []string {
@@ -52,7 +52,7 @@ func (args Args) ArgSlice() []string {
 		"-access-key-id", args.AccessKeyID,
 		"-secret-access-key", args.SecretAccessKey,
 		"-cpumonitor-url", args.CPUMonitorURL,
-		"-local-csv", args.LocalCSV,
+		"-local-csv", args.localCSV,
 	}
 
 	argSlice = append(argSlice, args.URL)
