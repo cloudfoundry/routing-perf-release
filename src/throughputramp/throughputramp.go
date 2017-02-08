@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +32,7 @@ var (
 	accessKeyID      = flag.String("access-key-id", "", "AccessKeyID for the S3 service.")
 	secretAccessKey  = flag.String("secret-access-key", "", "SecretAccessKey for the S3 service.")
 	cpuMonitorURL    = flag.String("cpumonitor-url", "", "Endpoint for monitoring CPU metrics")
+	LocalCSV         = flag.String("local-csv", "", "Stores csv locally to a specified directory when the flag is set")
 )
 
 func main() {
@@ -70,8 +72,10 @@ func main() {
 
 func uploadCSV(s3config *uploader.Config, csvData io.Reader, cpuCsv []byte) {
 	timeString := time.Now().UTC().Format(time.RFC3339)
+	csvDataFile := timeString + ".csv"
+	var cpuFilename string
 
-	loc, err := uploader.Upload(s3config, csvData, timeString+".csv")
+	loc, err := uploader.Upload(s3config, csvData, csvDataFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err)
 		os.Exit(1)
@@ -79,7 +83,7 @@ func uploadCSV(s3config *uploader.Config, csvData io.Reader, cpuCsv []byte) {
 	fmt.Fprintf(os.Stdout, "csv uploaded to %s\n", loc)
 
 	if len(cpuCsv) != 0 {
-		cpuFilename := fmt.Sprintf("cpuStats-%s.csv", timeString)
+		cpuFilename = fmt.Sprintf("cpuStats-%s.csv", timeString)
 
 		loc, err = uploader.Upload(s3config, bytes.NewBuffer(cpuCsv), cpuFilename)
 		if err != nil {
@@ -87,6 +91,33 @@ func uploadCSV(s3config *uploader.Config, csvData io.Reader, cpuCsv []byte) {
 		}
 		fmt.Fprintf(os.Stdout, "cpu csv uploaded to %s\n", loc)
 	}
+
+	if *LocalCSV != "" {
+		perfResult := filepath.Join(*LocalCSV, csvDataFile)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(csvData)
+		WriteFile(perfResult, buf.Bytes())
+
+		if len(cpuCsv) != 0 {
+			cpuResult := filepath.Join(*LocalCSV, cpuFilename)
+			WriteFile(cpuResult, cpuCsv)
+		}
+	}
+
+}
+
+func WriteFile(path string, data []byte) {
+	f, err := os.Create(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Creating csv file error: %s\n", err)
+		os.Exit(1)
+	}
+	_, err = f.Write(data)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Writing csv data to a file error: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stdout, "csv stored locally in file %s\n", path)
 }
 
 func runBenchmark(url,
@@ -134,7 +165,6 @@ func runBenchmark(url,
 			os.Exit(1)
 		}
 	}
-
 	uploadCSV(uploaderConfig, benchmarkData, cpuCsv)
 }
 
