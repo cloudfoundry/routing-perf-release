@@ -6,11 +6,11 @@ and [TCP router](https://github.com/cloudfoundry-incubator/cf-tcp-router). Gorou
 
 This release will deploy
 
-- a BOSH errand called `throughputramp` that runs a long-running "ramp up" load test in which 10,000 requests are sent to the static app through Gorouter from one client thread, then concurrency is incrementally scaled to 60 client threads, with 10,000 requests sent at each step. 
-- a VM running job `performance_tests` that will run a load test with fixed concurrency against Gorouter or TCP Router
-- a VM running job `http_route_populator` that registers HTTP routes via NATS (deployment of NATS is a prerequisite)
-- a VM running job `tcp_route_populator` that registers TCP routes via Routing API (deployment of Routing API is a prerequisite)
-- a VM running `gostatic`, a static go application that provides the backend to which the routers forward requests. Response size is 1KB by default (configurable using `gostatic.response_size` property)
+- `throughputramp` (c3.large): a BOSH errand responsible for generating load by making requests to gorouter for routes of `gostatic`. The `throughputramp` errand will begin by sending 10,000 requests from one thread then linearly scale concurrency to 60 threads, sending 10,000 requests across concurrent threads at each step in the ramp. Latency is recorded for each response and CPU measured periodically throughout the test. Once the test is completed test results are uploaded to S3, from which this report is generated. 
+- `performance_tests`: used to run a load test with fixed concurrency against Gorouter or TCP Router
+- `http_route_populator`: responsible for populating gorouter's routing table with routes via the NATS messaging bus. We have most frequently tested with with 1 route or 100,000. Deployment of NATS is a prerequisite.
+- `tcp_route_populator`: responsible for populating the routing table of TCP Router with routes via Routing API. Deployment of Routing API is a prerequisite.
+- `gostatic` (c3.large): the backend app for which http_route_populator registers routes. Gorouter will proxy requests for any of the test routes to the gostatic app, which will return a `200 OK` HTTP response with 1024 bytes of data (configurable using `gostatic.response_size` property).
 
 
 ## Get the code
