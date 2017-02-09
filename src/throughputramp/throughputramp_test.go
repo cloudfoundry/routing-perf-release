@@ -137,6 +137,7 @@ var _ = Describe("Throughputramp", func() {
 					fileCount := 0
 					for _, file := range files {
 						if strings.Contains(file.Name(), "csv") {
+							Expect(file.Size()).ToNot(BeZero())
 							fileCount++
 						}
 					}

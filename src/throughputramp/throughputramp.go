@@ -85,28 +85,15 @@ func uploadCSV(s3config *uploader.Config, csvData io.Reader, cpuCsv []byte) {
 	if len(cpuCsv) != 0 {
 		cpuFilename = fmt.Sprintf("cpuStats-%s.csv", timeString)
 
-		loc, err = uploader.Upload(s3config, bytes.NewBuffer(cpuCsv), cpuFilename)
+		loc, err := uploader.Upload(s3config, bytes.NewBuffer(cpuCsv), cpuFilename)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "uploading to s3 error: %s\n", err)
 		}
 		fmt.Fprintf(os.Stdout, "cpu csv uploaded to %s\n", loc)
 	}
-
-	if *localCSV != "" {
-		perfResult := filepath.Join(*localCSV, csvDataFile)
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(csvData)
-		WriteFile(perfResult, buf.Bytes())
-
-		if len(cpuCsv) != 0 {
-			cpuResult := filepath.Join(*localCSV, cpuFilename)
-			WriteFile(cpuResult, cpuCsv)
-		}
-	}
-
 }
 
-func WriteFile(path string, data []byte) {
+func writeFile(path string, data []byte) {
 	f, err := os.Create(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Creating csv file error: %s\n", err)
@@ -163,6 +150,16 @@ func runBenchmark(url,
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
+		}
+	}
+
+	if *localCSV != "" {
+		perfResult := filepath.Join(*localCSV, "perfResults.csv")
+		writeFile(perfResult, benchmarkData.Bytes())
+
+		if len(cpuCsv) != 0 {
+			cpuResult := filepath.Join(*localCSV, "cpuStats.csv")
+			writeFile(cpuResult, cpuCsv)
 		}
 	}
 	uploadCSV(uploaderConfig, benchmarkData, cpuCsv)
