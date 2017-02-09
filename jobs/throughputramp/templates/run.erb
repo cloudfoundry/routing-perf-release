@@ -3,6 +3,9 @@
 RUN_DIR=/var/vcap/sys/run/throughputramp
 
 mkdir -p $RUN_DIR $LOG_DIR
+# clean up previous runs csv files
+rm -rf ${LOG_DIR}/*.csv
+
 chown -R vcap:vcap $RUN_DIR $LOG_DIR
 
 PATH=/var/vcap/packages/hey/bin:$PATH
