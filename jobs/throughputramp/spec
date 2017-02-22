@@ -24,6 +24,6 @@ properties:
     description: Upper concurrency limit.
   throughputramp.lower_concurrency:
     description: Lower concurrency limit.
-  throughputramp.localCSV:
+  throughputramp.local_csv:
     description: Local directory for the perf results.
 
