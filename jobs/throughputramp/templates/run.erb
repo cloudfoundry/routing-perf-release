@@ -12,8 +12,10 @@ PATH=/var/vcap/packages/hey/bin:$PATH
 
 exec /var/vcap/packages/throughputramp/bin/throughputramp -access-key-id <%= p("throughputramp.access_key_id") %>  \
 -secret-access-key <%= p("throughputramp.secret_access_key") %> \
--bucket-name <%= p("throughputramp.bucket_name") %> -n 10000 -q 100 -lower-concurrency  <%= p("throughputramp.lower_concurrency") %> \
--upper-concurrency  <%= p("throughputramp.upper_concurrency") %>  \
+-bucket-name <%= p("throughputramp.bucket_name") %> \
+-n <%= p("throughputramp.num_requests") %> -q 100 \
+-lower-concurrency  <%= p("throughputramp.lower_concurrency") %> \
+-upper-concurrency  <%= p("throughputramp.upper_concurrency") %> \
 -s3-region us-east-1 \
 -cpumonitor-url <%= p("throughputramp.cpu_monitor_url") %> \
 -local-csv <%= p("throughputramp.local_csv") %> \
