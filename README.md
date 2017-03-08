@@ -129,6 +129,13 @@ Errand will upload CPU stats and performance results to an S3 bucket specified i
    `perfResults.csv`. Currently the notebook is configured to look for files
    with these names. Keep track of what the file names were before to provide
    a reference point for multiple investigations.
+1. Notebook is configured to read metadata file to understand relation between graph and routing release GIT SHA. It currently looks for file with name `metadata.yml`, with structure 
+
+	```
+ 	---
+ 	sha: 328dhjd
+ 	```
+ 
 1. Run the below command to start the Docker container. Replace
    `PATH_TO_ROUTING_PERF_RELEASE` with the actual path to this repo on your
    local machine. The `-v LOCAL_DIR:CONTAINER_DIR` command will mount a local
@@ -162,7 +169,7 @@ Errand will upload CPU stats and performance results to an S3 bucket specified i
    1. Add CPU stats and performance results to folder $routing-perf-release-path/src/jupyter_notebook/
    1. Rename CPU stats file to `old_cpuStats.csv` and performance test file to `old_perfResults.csv`.
    1. Go to the Notebook server page and update variable `compareDatasets` to `True` and rerun all the cells
-
+   1. Add metadata file to with name `old_metdata.yml` to include GIT sha deatils.
 
 ### Troubleshooting Jupyter Notebook
 
