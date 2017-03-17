@@ -26,3 +26,11 @@ properties:
       The routes will be popuated as follows:
         sample-0.apps.com, sample-1.apps.com, ..., sample-100000.apps.com
     example: 100_000
+  http_route_populator.publish_delay:
+    description: |
+      The HTTP route populator will emit NATS route registration messages one
+      by one, with this value as the interval between each message. When set to
+      zero, it will send values as fast as possible, but NATS subscribers may
+      lose messages.
+      Be sure to set this to a valid Golang time string.
+    example: 50us

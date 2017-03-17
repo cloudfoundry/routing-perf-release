@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"http_route_populator/publisher"
 	"http_route_populator/publisher/fakes"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,13 +23,14 @@ var _ = Describe("Worker", func() {
 		StartRange: 500,
 		EndRange:   505,
 	}
+	publishDelay := 0 * time.Second
 	Describe("Initialize", func() {
 		It("errors if validation of the job properties fails", func() {
 			w := publisher.NewPublisher(publisher.Job{
 				PublishingEndpoint: "endpoint",
 				BackendHost:        "1.2.3.4",
 				BackendPort:        1234,
-			})
+			}, publishDelay)
 			createConnection := func(endpoint string) (publisher.PublishingConnection, error) {
 				return nil, nil
 			}
@@ -38,7 +40,7 @@ var _ = Describe("Worker", func() {
 		})
 
 		It("errors if the creation of a connection fails", func() {
-			w := publisher.NewPublisher(validJob)
+			w := publisher.NewPublisher(validJob, publishDelay)
 			createConnection := func(endpoint string) (publisher.PublishingConnection, error) {
 				return nil, errors.New("Unable to create connection")
 			}
@@ -50,7 +52,7 @@ var _ = Describe("Worker", func() {
 
 	Describe("PublishRouteRegistrations", func() {
 		It("correctly publishes (endrange - startrange) register messages", func() {
-			w := publisher.NewPublisher(validJob)
+			w := publisher.NewPublisher(validJob, publishDelay)
 			c := &fakes.FakePublishingConnection{}
 			createConnection := func(endpoint string) (publisher.PublishingConnection, error) {
 				Expect(endpoint).To(Equal("pub.end.point"))
@@ -71,7 +73,7 @@ var _ = Describe("Worker", func() {
 		})
 
 		It("immediately errors if publishing fails", func() {
-			w := publisher.NewPublisher(validJob)
+			w := publisher.NewPublisher(validJob, publishDelay)
 			c := &fakes.FakePublishingConnection{}
 			c.PublishReturns(errors.New("Unable to publish message"))
 
@@ -92,7 +94,7 @@ var _ = Describe("Worker", func() {
 
 	Describe("Finish", func() {
 		It("closes the connection with the publishing endpoint", func() {
-			w := publisher.NewPublisher(validJob)
+			w := publisher.NewPublisher(validJob, publishDelay)
 			c := &fakes.FakePublishingConnection{}
 			createConnection := func(endpoint string) (publisher.PublishingConnection, error) {
 				Expect(endpoint).To(Equal("pub.end.point"))

@@ -36,6 +36,7 @@ var _ = Describe("Main", func() {
 			Expect(session.Err).To(gbytes.Say("-appDomain must be provided"))
 			Expect(session.Err).To(gbytes.Say("-appName must be provided"))
 			Expect(session.Err).To(gbytes.Say("-numRoutes must be provided"))
+			Expect(session.Err).ToNot(gbytes.Say("-publishDelay is an invalid string"))
 		})
 
 		It("errors if only nats is passed", func() {
@@ -112,6 +113,17 @@ var _ = Describe("Main", func() {
 			Eventually(session).Should(gexec.Exit(1))
 
 			Expect(session.Err).To(gbytes.Say("-heartbeatInterval must be greater than 0"))
+		})
+
+		It("errors if parseDuration is an invalid string", func() {
+			routePopulatorCommand := exec.Command(httpRoutePopulatorPath,
+				"-publishDelay", "foo",
+			)
+			session, err := gexec.Start(routePopulatorCommand, GinkgoWriter, GinkgoWriter)
+			Expect(err).ToNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit(1))
+
+			Expect(session.Err).To(gbytes.Say("-publishDelay is an invalid string"))
 		})
 	})
 })

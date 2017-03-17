@@ -26,6 +26,8 @@ var _ = Describe("Runner", func() {
 		StartRange: 500,
 		EndRange:   505,
 	}
+	publishDelay := 0 * time.Second
+
 	Describe("Start", func() {
 		It("publishes once as soon as the runner is started", func(done Done) {
 			defer close(done)
@@ -42,7 +44,7 @@ var _ = Describe("Runner", func() {
 				return c, nil
 			}
 
-			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 10*time.Second)
+			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 10*time.Second, publishDelay)
 			err := r.Start()
 			Expect(err).ToNot(HaveOccurred())
 			r.Stop()
@@ -60,7 +62,7 @@ var _ = Describe("Runner", func() {
 				return c, nil
 			}
 
-			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 600*time.Millisecond)
+			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 600*time.Millisecond, publishDelay)
 			err := r.Start()
 			Expect(err).ToNot(HaveOccurred())
 			time.Sleep(time.Second)
@@ -77,7 +79,7 @@ var _ = Describe("Runner", func() {
 				return nil, errors.New("Some failure")
 			}
 
-			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 600*time.Millisecond)
+			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 600*time.Millisecond, publishDelay)
 			err := r.Start()
 			Expect(err).ToNot(HaveOccurred())
 			r.Stop()
@@ -96,7 +98,7 @@ var _ = Describe("Runner", func() {
 				return c, nil
 			}
 
-			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 600*time.Millisecond)
+			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 600*time.Millisecond, publishDelay)
 			err := r.Start()
 			Expect(err).ToNot(HaveOccurred())
 			r.Stop()
@@ -112,7 +114,7 @@ var _ = Describe("Runner", func() {
 				return &fakes.FakePublishingConnection{}, nil
 			}
 
-			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 1*time.Second)
+			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 1*time.Second, publishDelay)
 			err := r.Start()
 			Expect(err).ToNot(HaveOccurred())
 			r.Stop()
@@ -126,7 +128,7 @@ var _ = Describe("Runner", func() {
 				return &fakes.FakePublishingConnection{}, nil
 			}
 
-			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 1*time.Second)
+			r := runner.NewRunner(createConnection, validJob, numGoRoutines, 1*time.Second, publishDelay)
 			err := r.Start()
 			Expect(err).ToNot(HaveOccurred())
 			r.Stop()

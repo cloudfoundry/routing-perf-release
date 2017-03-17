@@ -56,6 +56,14 @@ var heartbeatInterval = flag.Int(
 	"Time (in seconds) between sending routes.",
 )
 
+var publishDelayString = flag.String(
+	"publishDelay",
+	"50us",
+	"Time to wait (duration string) between each publishing of a NATS message",
+)
+
+var publishDelay time.Duration
+
 func main() {
 	checkRequiredFields()
 	startPopulatingRoutes()
@@ -100,6 +108,13 @@ func checkRequiredFields() {
 		checkFailed = true
 	}
 
+	var err error
+	publishDelay, err = time.ParseDuration(*publishDelayString)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "-publishDelay is an invalid string: %s\n", err)
+		checkFailed = true
+	}
+
 	if checkFailed {
 		fmt.Fprintf(os.Stderr, "\n")
 		flag.Usage()
@@ -127,7 +142,7 @@ func startPopulatingRoutes() {
 		numCPU = 1
 	}
 	interval := time.Duration(*heartbeatInterval) * time.Second
-	r := runner.NewRunner(createNATSConnection, job, numCPU, interval)
+	r := runner.NewRunner(createNATSConnection, job, numCPU, interval, publishDelay)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -142,10 +157,12 @@ func startPopulatingRoutes() {
 	err := r.Start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting runner: %s\n", err)
+		os.Exit(1)
 	}
 	err = r.Wait()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running: %s\n", err)
+		os.Exit(1)
 	}
 }
 

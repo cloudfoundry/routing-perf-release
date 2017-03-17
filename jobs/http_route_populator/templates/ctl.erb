@@ -19,6 +19,9 @@ case $1 in
       -appDomain <%= p("http_route_populator.app_domain") %> \
       -appName <%= p("http_route_populator.app_name") %> \
       -numRoutes <%= p("http_route_populator.num_routes") %> \
+      <% if_p("http_route_populator.publish_delay") do |prop| %> \
+        -publishDelay <%= prop.to_s %> \
+      <% end %> \
       >>  $LOG_DIR/http_route_populator.log \
       2>> $LOG_DIR/http_route_populator.stderr.log
 

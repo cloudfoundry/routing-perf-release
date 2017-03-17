@@ -64,15 +64,17 @@ type RouteData struct {
 }
 
 type Publisher struct {
-	job  Job
-	conn PublishingConnection
+	job          Job
+	publishDelay time.Duration
+	conn         PublishingConnection
 
 	data [][]byte
 }
 
-func NewPublisher(job Job) *Publisher {
+func NewPublisher(job Job, publishDelay time.Duration) *Publisher {
 	return &Publisher{
-		job: job,
+		job:          job,
+		publishDelay: publishDelay,
 	}
 }
 
@@ -111,7 +113,7 @@ func (p *Publisher) PublishRouteRegistrations() error {
 		if err != nil {
 			return err
 		}
-		time.Sleep(50 * time.Microsecond)
+		time.Sleep(p.publishDelay)
 	}
 	ttp := time.Since(start)
 	log.Printf("Routes published in %f seconds: %d - %d, e.g. %s\n", ttp.Seconds(), p.job.StartRange, p.job.EndRange, string(p.data[0]))

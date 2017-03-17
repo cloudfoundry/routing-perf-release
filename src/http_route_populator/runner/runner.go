@@ -16,6 +16,7 @@ type Runner struct {
 
 	numGoRoutines     int
 	heartbeatInterval time.Duration
+	publishDelay      time.Duration
 
 	wg *sync.WaitGroup
 
@@ -23,7 +24,7 @@ type Runner struct {
 	quitChan chan struct{}
 }
 
-func NewRunner(c publisher.ConnectionCreator, j publisher.Job, numGoRoutines int, heartbeatInterval time.Duration) *Runner {
+func NewRunner(c publisher.ConnectionCreator, j publisher.Job, numGoRoutines int, heartbeatInterval time.Duration, publishDelay time.Duration) *Runner {
 	return &Runner{
 		cc:                c,
 		job:               j,
@@ -32,6 +33,7 @@ func NewRunner(c publisher.ConnectionCreator, j publisher.Job, numGoRoutines int
 		errsChan:          make(chan error, numGoRoutines),
 		quitChan:          make(chan struct{}, 1),
 		heartbeatInterval: heartbeatInterval,
+		publishDelay:      publishDelay,
 	}
 }
 
@@ -52,7 +54,7 @@ func (r *Runner) Start() error {
 			job := r.job
 			job.StartRange = ranges[id]
 			job.EndRange = ranges[id+1]
-			p := publisher.NewPublisher(job)
+			p := publisher.NewPublisher(job, r.publishDelay)
 			err := p.Initialize(r.cc)
 			if err != nil {
 				r.errsChan <- fmt.Errorf("initializing connection: %s", err)
