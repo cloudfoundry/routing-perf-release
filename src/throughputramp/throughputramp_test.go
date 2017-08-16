@@ -33,11 +33,11 @@ var _ = Describe("Throughputramp", func() {
 
 	Context("when correct arguments are used", func() {
 		BeforeEach(func() {
-			url := "http://example.com"
+			url := "example.com"
 			testServer = ghttp.NewUnstartedServer()
 			handler := ghttp.CombineHandlers(
 				func(rw http.ResponseWriter, req *http.Request) {
-					Expect(req.Host).To(Equal(strings.TrimPrefix(url, "http://")))
+					Expect(req.Host).To(Equal(url))
 				},
 				ghttp.RespondWith(http.StatusOK, nil),
 			)
@@ -70,8 +70,8 @@ var _ = Describe("Throughputramp", func() {
 				StartConcurrency: 2,
 				EndConcurrency:   4,
 				ConcurrencyStep:  2,
-				Proxy:            testServer.URL(),
-				URL:              url,
+				Router:           testServer.URL(),
+				Host:             url,
 				BucketName:       "blah-bucket",
 				Endpoint:         testS3Server.URL(),
 				AccessKeyID:      "ABCD",

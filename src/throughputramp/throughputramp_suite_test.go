@@ -29,8 +29,8 @@ type Args struct {
 	StartConcurrency int
 	EndConcurrency   int
 	ConcurrencyStep  int
-	Proxy            string
-	URL              string
+	Host             string
+	Router           string
 	Endpoint         string
 	BucketName       string
 	AccessKeyID      string
@@ -43,7 +43,7 @@ func (args Args) ArgSlice() []string {
 	argSlice := []string{
 		"-n", strconv.Itoa(args.NumRequests),
 		"-q", strconv.Itoa(args.RateLimit),
-		"-x", args.Proxy,
+		"-host", args.Host,
 		"-lower-concurrency", strconv.Itoa(args.StartConcurrency),
 		"-upper-concurrency", strconv.Itoa(args.EndConcurrency),
 		"-concurrency-step", strconv.Itoa(args.ConcurrencyStep),
@@ -55,7 +55,7 @@ func (args Args) ArgSlice() []string {
 		"-local-csv", args.localCSV,
 	}
 
-	argSlice = append(argSlice, args.URL)
+	argSlice = append(argSlice, args.Router)
 	return argSlice
 }
 

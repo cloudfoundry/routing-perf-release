@@ -20,7 +20,7 @@ import (
 
 var (
 	numRequests      = flag.Int("n", 1000, "number of requests to send")
-	proxy            = flag.String("x", "", "proxy for request")
+	host             = flag.String("host", "", "Value of host header for backend request.")
 	interval         = flag.Int("i", 1, "interval in seconds to average throughput")
 	threadRateLimit  = flag.Int("q", 0, "thread rate limit")
 	lowerConcurrency = flag.Int("lower-concurrency", 1, "Starting concurrency value")
@@ -54,12 +54,12 @@ func main() {
 		usageAndExit()
 	}
 
-	url := flag.Args()[0]
+	router := flag.Args()[0]
 
 	cpumonitorURL := strings.TrimPrefix(*cpuMonitorURL, "http://")
 
-	runBenchmark(url,
-		*proxy,
+	runBenchmark(router,
+		*host,
 		cpumonitorURL,
 		*numRequests,
 		*lowerConcurrency,
@@ -107,8 +107,8 @@ func writeFile(path string, data []byte) {
 	fmt.Fprintf(os.Stdout, "csv stored locally in file %s\n", path)
 }
 
-func runBenchmark(url,
-	proxy,
+func runBenchmark(router,
+	host,
 	cpumonitorURL string,
 	numRequests,
 	lowerConcurrency,
@@ -130,7 +130,7 @@ func runBenchmark(url,
 
 	benchmarkData := new(bytes.Buffer)
 	for i := lowerConcurrency; i <= upperConcurrency; i += concurrencyStep {
-		heyData, benchmarkErr := run(url, proxy, numRequests, i, threshold)
+		heyData, benchmarkErr := run(router, host, numRequests, i, threshold)
 		if benchmarkErr != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", benchmarkErr)
 			os.Exit(1)
@@ -165,15 +165,15 @@ func runBenchmark(url,
 	uploadCSV(uploaderConfig, benchmarkData, cpuCsv)
 }
 
-func run(url, proxy string, numRequests, concurrentRequests, rateLimit int) ([]byte, error) {
+func run(router, host string, numRequests, concurrentRequests, rateLimit int) ([]byte, error) {
 	fmt.Fprintf(os.Stdout, "Running benchmark with %d requests, %d concurrency, and %d rate limit\n", numRequests, concurrentRequests, rateLimit)
 	args := []string{
-		"-x", proxy,
+		"-host", host,
 		"-n", strconv.Itoa(numRequests),
 		"-c", strconv.Itoa(concurrentRequests),
 		"-q", strconv.Itoa(rateLimit),
 		"-o", "csv",
-		url,
+		router,
 	}
 
 	heyData, err := exec.Command("hey", args...).Output()

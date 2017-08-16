@@ -19,5 +19,5 @@ exec /var/vcap/packages/throughputramp/bin/throughputramp -access-key-id <%= p("
 -s3-region us-east-1 \
 -cpumonitor-url <%= p("throughputramp.cpu_monitor_url") %> \
 -local-csv <%= p("throughputramp.local_csv") %> \
--x http://<%= p("throughputramp.proxy") %>:80 <%= p("throughputramp.url") %>
+-host <%= p("throughputramp.host") %> <%= p("throughputramp.router") %>
 # we should not pass anything after -x flag
