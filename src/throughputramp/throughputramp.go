@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"io"
@@ -180,7 +181,32 @@ func run(router, host string, numRequests, concurrentRequests, rateLimit int) ([
 	if err != nil {
 		return nil, fmt.Errorf("hey error: %s\nData:\n%s", err, string(heyData))
 	}
-	return heyData, nil
+	return selectCSVColumns(string(heyData)), nil
+}
+
+func selectCSVColumns(heyData string) []byte {
+	const (
+		startTime    = 6
+		responseTime = 0
+	)
+	r := csv.NewReader(strings.NewReader(heyData))
+
+	records, err := r.ReadAll()
+	if err != nil {
+		fmt.Errorf("reading csv records %s", err)
+	}
+	if len(records) == 0 {
+		return nil
+	}
+	var b bytes.Buffer
+	b.Write([]byte("start-time,response-time\n"))
+	for i := 1; i < len(records); i++ {
+		_, err = b.Write([]byte(fmt.Sprintf("%s,%s\n", records[i][startTime], records[i][responseTime])))
+		if err != nil {
+			fmt.Errorf("writing csv records %s", err)
+		}
+	}
+	return b.Bytes()
 }
 
 func usageAndExit() {
