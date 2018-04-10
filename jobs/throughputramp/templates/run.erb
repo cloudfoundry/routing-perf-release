@@ -15,6 +15,7 @@ PATH=/var/vcap/packages/hey/bin:$PATH
 <%
 begin
   router_base_url = nil
+  cpumonitor_base_url = nil
 
   if_p('throughputramp.router') do |url|
     router_base_url = url
@@ -22,6 +23,15 @@ begin
     host = link('gorouter').instances[0].address
 
     router_base_url = "http://#{host}:80"
+  end
+
+  if_p('throughputramp.cpu_monitor_url') do |url|
+    cpumonitor_base_url = url
+  end.else do
+    host = link('cpumonitor').instances[0].address
+    port = link('cpumonitor').p('cpumonitor.port')
+
+    cpumonitor_base_url = "http://#{host}:#{port}"
   end
 rescue
 end
@@ -34,7 +44,7 @@ exec /var/vcap/packages/throughputramp/bin/throughputramp -access-key-id <%= p("
 -lower-concurrency  <%= p("throughputramp.lower_concurrency") %> \
 -upper-concurrency  <%= p("throughputramp.upper_concurrency") %> \
 -s3-region us-east-1 \
--cpumonitor-url <%= p("throughputramp.cpu_monitor_url") %> \
+-cpumonitor-url <%= cpumonitor_base_url %> \
 -local-csv <%= p("throughputramp.local_csv") %> \
 -host <%= p("throughputramp.host") %> <%= router_base_url %>
 # we should not pass anything after -x flag

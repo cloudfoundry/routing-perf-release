@@ -12,6 +12,10 @@ consumes:
   type: http-router
   optional: true
 
+- name: cpumonitor
+  type: cpumonitor
+  optional: true
+
 properties:
   throughputramp.host:
     description: Value of the host header when making a request to the backend.

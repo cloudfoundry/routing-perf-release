@@ -6,6 +6,12 @@ templates:
 packages:
   - cpumonitor
 
+provides:
+- name: cpumonitor
+  type: cpumonitor
+  properties:
+  - cpumonitor.port
+
 properties:
   cpumonitor.port:
     description: Port that CPU Monitor should be running on.
