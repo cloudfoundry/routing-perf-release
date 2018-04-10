@@ -1,5 +1,25 @@
 #!/bin/bash
 
+set -euo pipefail
+
+<%
+begin
+  nats_url = nil
+
+  if_p('http_route_populator.nats') do |url|
+    nats_url = url
+  end.else do
+    host = link('nats').instances[0].address
+    port = link('nats').p("nats.port")
+    user = link('nats').p("nats.user")
+    password = link('nats').p("nats.password")
+
+    nats_url = "http://#{user}:#{password}@#{host}:#{port}"
+  end
+rescue
+end
+%>
+
 RUN_DIR=/var/vcap/sys/run/http_route_populator
 LOG_DIR=/var/vcap/sys/log/http_route_populator
 PIDFILE=${RUN_DIR}/pid
@@ -13,7 +33,7 @@ case $1 in
     echo $$ > $PIDFILE
 
     exec /var/vcap/packages/http_route_populator/bin/http_route_populator \
-      -nats <%= p("http_route_populator.nats") %> \
+      -nats <%= nats_url %> \
       -backendHost <%= link("static").instances[0].address %> \
       -backendPort 8080 \
       -appDomain <%= p("http_route_populator.app_domain") %> \

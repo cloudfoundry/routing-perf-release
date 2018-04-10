@@ -10,6 +10,10 @@ consumes:
   - name: static
     type: backend
 
+  - name: nats
+    type: nats
+    optional: true
+
 properties:
   http_route_populator.nats:
     description: Endpoint of the NATS server (including scheme, credentials, and port)
