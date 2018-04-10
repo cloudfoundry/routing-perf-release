@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+set -o pipefail
+
 RUN_DIR=/var/vcap/sys/run/throughputramp
 
 mkdir -p $RUN_DIR $LOG_DIR
@@ -10,6 +12,21 @@ chown -R vcap:vcap $RUN_DIR $LOG_DIR
 
 PATH=/var/vcap/packages/hey/bin:$PATH
 
+<%
+begin
+  router_base_url = nil
+
+  if_p('throughputramp.router') do |url|
+    router_base_url = url
+  end.else do
+    host = link('gorouter').instances[0].address
+
+    router_base_url = "http://#{host}:80"
+  end
+rescue
+end
+%>
+
 exec /var/vcap/packages/throughputramp/bin/throughputramp -access-key-id <%= p("throughputramp.access_key_id") %>  \
 -secret-access-key <%= p("throughputramp.secret_access_key") %> \
 -bucket-name <%= p("throughputramp.bucket_name") %> \
@@ -19,5 +36,5 @@ exec /var/vcap/packages/throughputramp/bin/throughputramp -access-key-id <%= p("
 -s3-region us-east-1 \
 -cpumonitor-url <%= p("throughputramp.cpu_monitor_url") %> \
 -local-csv <%= p("throughputramp.local_csv") %> \
--host <%= p("throughputramp.host") %> <%= p("throughputramp.router") %>
+-host <%= p("throughputramp.host") %> <%= router_base_url %>
 # we should not pass anything after -x flag
