@@ -8,6 +8,11 @@ templates:
 packages:
   - hey
 
+consumes:
+- name: gorouter
+  type: http-router
+  optional: true
+
 properties:
   performance_tests.routers:
     description: Array of router addresses and datadog tags to run performance tests against
