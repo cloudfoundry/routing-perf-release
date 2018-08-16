@@ -4,7 +4,16 @@ set -e
 
 DIR=`dirname $0`
 
-<% link('gorouter').instances.each do |router| %>
+<%
+  routers = nil
+  if_link("gorouter") do |prop|
+    routers = prop
+  end.else do
+    routers = link("tcp_router")
+  end
+%>
+
+<% routers.instances.each do |router| %>
   tmpfile=$(mktemp)
   set +e
     ${DIR}/run_perf_test <%= router.address %> <%= p("performance_tests.tag") %> > ${tmpfile}

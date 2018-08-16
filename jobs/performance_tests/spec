@@ -11,6 +11,11 @@ packages:
 consumes:
 - name: gorouter
   type: http-router
+  optional: true
+
+- name: tcp_router
+  type: tcp-router
+  optional: true
 
 properties:
   performance_tests.tag:
