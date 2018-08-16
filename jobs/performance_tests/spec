@@ -11,14 +11,8 @@ packages:
 consumes:
 - name: gorouter
   type: http-router
-  optional: true
 
 properties:
-  performance_tests.routers:
-    description: Array of router addresses and datadog tags to run performance tests against
-    example: |
-      - address: 10.10.8.8
-        tag: gorouter
   performance_tests.host:
     description: The host to specify in the 'Host:' header
   performance_tests.port:

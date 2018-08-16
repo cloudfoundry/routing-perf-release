@@ -4,19 +4,10 @@ set -e
 
 DIR=`dirname $0`
 
-<%
-  routers = nil
-  if_p("performance_tests.routers") do |prop|
-    routers = prop
-  end.else do
-    routers = link('gorouter').instances
-  end
-%>
-
-<% routers.each do |router| %>
+<% link('gorouter').instances.each do |router| %>
   tmpfile=$(mktemp)
   set +e
-    ${DIR}/run_perf_test <%= router["address"] %> <%= router["tag"].blank? ? "gorouter" : router["tag"] %> > ${tmpfile}
+    ${DIR}/run_perf_test <%= router.address %> "gorouter" > ${tmpfile}
     EXIT_STATUSES="${EXIT_STATUSES} $?"
   set -e
   TMPFILES="${TMPFILES} ${tmpfile}"
