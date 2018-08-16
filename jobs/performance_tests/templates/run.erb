@@ -7,7 +7,7 @@ DIR=`dirname $0`
 <% link('gorouter').instances.each do |router| %>
   tmpfile=$(mktemp)
   set +e
-    ${DIR}/run_perf_test <%= router.address %> "gorouter" > ${tmpfile}
+    ${DIR}/run_perf_test <%= router.address %> <%= p("performance_tests.tag") %> > ${tmpfile}
     EXIT_STATUSES="${EXIT_STATUSES} $?"
   set -e
   TMPFILES="${TMPFILES} ${tmpfile}"

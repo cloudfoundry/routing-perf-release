@@ -13,6 +13,8 @@ consumes:
   type: http-router
 
 properties:
+  performance_tests.tag:
+    description: The tag to be used when data is sent to datadog.
   performance_tests.host:
     description: The host to specify in the 'Host:' header
   performance_tests.port:
