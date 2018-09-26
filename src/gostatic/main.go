@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/valyala/fasthttp"
 )
 
 var data string
@@ -26,9 +25,12 @@ func main() {
 		log.Fatalf("The PORT environment variable is empty")
 	}
 	data = strings.Repeat("Z", responseSize*1024)
-	log.Fatal(fasthttp.ListenAndServe(":"+os.Getenv("PORT"), index))
-}
 
-func index(ctx *fasthttp.RequestCtx) {
-	fmt.Fprintf(ctx, data)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, data)
+	})
+
+	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
+		panic(err)
+	}
 }
