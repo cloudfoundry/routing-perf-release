@@ -1,7 +1,7 @@
 ---
 name: cpumonitor
 dependencies:
-  - golang
+  - golang-1-linux
 files:
   - cpumonitor/**/*.go # gosub
   - github.com/shirou/gopsutil/cpu/*.go # gosub

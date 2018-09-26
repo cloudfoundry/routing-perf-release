@@ -1,7 +1,7 @@
 ---
 name: http_route_populator
 dependencies:
-  - golang
+  - golang-1-linux
 files:
   - http_route_populator/*.go # gosub
   - http_route_populator/publisher/*.go # gosub

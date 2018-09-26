@@ -1,7 +1,7 @@
 ---
 name: gostatic
 dependencies:
-- golang
+- golang-1-linux
 files:
   - gostatic/vendor/**/*
   - gostatic/*.go # gosub
