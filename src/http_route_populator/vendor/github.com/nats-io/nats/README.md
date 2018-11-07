@@ -1,14 +1,15 @@
 # NATS - Go Client
 A [Go](http://golang.org) client for the [NATS messaging system](https://nats.io).
 
-[![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nats-io/nats)](https://goreportcard.com/report/github.com/nats-io/nats) [![Build Status](https://travis-ci.org/nats-io/nats.svg?branch=master)](http://travis-ci.org/nats-io/nats) [![GoDoc](http://godoc.org/github.com/nats-io/nats?status.png)](http://godoc.org/github.com/nats-io/nats) [![Coverage Status](https://coveralls.io/repos/nats-io/nats/badge.svg?branch=master)](https://coveralls.io/r/nats-io/nats?branch=master)
+[![License Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnats-io%2Fgo-nats.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnats-io%2Fgo-nats?ref=badge_shield)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nats-io/go-nats)](https://goreportcard.com/report/github.com/nats-io/go-nats) [![Build Status](https://travis-ci.org/nats-io/go-nats.svg?branch=master)](http://travis-ci.org/nats-io/go-nats) [![GoDoc](https://godoc.org/github.com/nats-io/go-nats?status.svg)](http://godoc.org/github.com/nats-io/go-nats) [![Coverage Status](https://coveralls.io/repos/nats-io/go-nats/badge.svg?branch=master)](https://coveralls.io/r/nats-io/go-nats?branch=master)
 
 ## Installation
 
 ```bash
 # Go client
-go get github.com/nats-io/nats
+go get github.com/nats-io/go-nats
 
 # Server
 go get github.com/nats-io/gnatsd
@@ -18,6 +19,7 @@ go get github.com/nats-io/gnatsd
 
 ```go
 
+// Connect to a server
 nc, _ := nats.Connect(nats.DefaultURL)
 
 // Simple Publisher
@@ -35,10 +37,13 @@ m, err := sub.NextMsg(timeout)
 // Channel Subscriber
 ch := make(chan *nats.Msg, 64)
 sub, err := nc.ChanSubscribe("foo", ch)
-msg <- ch
+msg := <- ch
 
 // Unsubscribe
 sub.Unsubscribe()
+
+// Drain
+sub.Drain()
 
 // Requests
 msg, err := nc.Request("help", []byte("help me"), 10*time.Millisecond)
@@ -48,9 +53,12 @@ nc.Subscribe("help", func(m *Msg) {
     nc.Publish(m.Reply, []byte("I can help!"))
 })
 
+// Drain connection (Preferred for responders)
+// Close() not needed if this is called.
+nc.Drain()
+
 // Close connection
-nc := nats.Connect("nats://localhost:4222")
-nc.Close();
+nc.Close()
 ```
 
 ## Encoded Connections
@@ -268,31 +276,66 @@ nc, err = nats.Connect(servers,
 	}),
 	nats.ClosedHandler(func(nc *nats.Conn) {
 		fmt.Printf("Connection closed. Reason: %q\n", nc.LastError())
-	}),
+	})
 )
 
+// When connecting to a mesh of servers with auto-discovery capabilities,
+// you may need to provide a username/password or token in order to connect
+// to any server in that mesh when authentication is required.
+// Instead of providing the credentials in the initial URL, you will use
+// new option setters:
+nc, err = nats.Connect("nats://localhost:4222", nats.UserInfo("foo", "bar"))
+
+// For token based authentication:
+nc, err = nats.Connect("nats://localhost:4222", nats.Token("S3cretT0ken"))
+
+// You can even pass the two at the same time in case one of the server
+// in the mesh requires token instead of user name and password.
+nc, err = nats.Connect("nats://localhost:4222",
+    nats.UserInfo("foo", "bar"),
+    nats.Token("S3cretT0ken"))
+
+// Note that if credentials are specified in the initial URLs, they take
+// precedence on the credentials specfied through the options.
+// For instance, in the connect call below, the client library will use
+// the user "my" and password "pwd" to connect to locahost:4222, however,
+// it will use username "foo" and password "bar" when (re)connecting to
+// a different server URL that it got as part of the auto-discovery.
+nc, err = nats.Connect("nats://my:pwd@localhost:4222", nats.UserInfo("foo", "bar"))
+
+```
+
+## Context support (+Go 1.7)
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+defer cancel()
+
+nc, err := nats.Connect(nats.DefaultURL)
+
+// Request with context
+msg, err := nc.RequestWithContext(ctx, "foo", []byte("bar"))
+
+// Synchronous subscriber with context
+sub, err := nc.SubscribeSync("foo")
+msg, err := sub.NextMsgWithContext(ctx)
+
+// Encoded Request with context
+c, err := nats.NewEncodedConn(nc, nats.JSON_ENCODER)
+type request struct {
+	Message string `json:"message"`
+}
+type response struct {
+	Code int `json:"code"`
+}
+req := &request{Message: "Hello"}
+resp := &response{}
+err := c.RequestWithContext(ctx, "foo", req, resp)
 ```
 
 ## License
 
-(The MIT License)
+Unless otherwise noted, the NATS source files are distributed
+under the Apache Version 2.0 license found in the LICENSE file.
 
-Copyright (c) 2012-2016 Apcera Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to
-deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-IN THE SOFTWARE.
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnats-io%2Fgo-nats.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnats-io%2Fgo-nats?ref=badge_large)
