@@ -87,7 +87,14 @@ var _ = Describe("Handler", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 			Expect(resp.Header.Get("Content-Type")).To(Equal("application/json"))
-			Expect(testData).To(Equal(unmarshallResponse(resp.Body)))
+
+			testDataJson, err := json.Marshal(testData)
+			Expect(err).ToNot(HaveOccurred())
+
+			respBody, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(respBody).To(MatchJSON(testDataJson))
 		})
 
 		It("does not call result if CPUCollector is not running", func() {
@@ -105,15 +112,6 @@ func responseString(body io.ReadCloser) string {
 	responseContent, err := ioutil.ReadAll(body)
 	Expect(err).ToNot(HaveOccurred())
 	return string(responseContent)
-}
-
-func unmarshallResponse(body io.ReadCloser) []stats.Info {
-	var results []stats.Info
-	content, err := ioutil.ReadAll(body)
-	Expect(err).ToNot(HaveOccurred())
-	err = json.Unmarshal(content, &results)
-	Expect(err).ToNot(HaveOccurred())
-	return results
 }
 
 func testData(entry int) []stats.Info {

@@ -3,6 +3,13 @@ name: cpumonitor
 dependencies:
   - golang-1-linux
 files:
-  - cpumonitor/**/*.go # gosub
-  - github.com/shirou/gopsutil/cpu/*.go # gosub
-  - github.com/shirou/gopsutil/internal/common/*.go # gosub
+  - cpumonitor/*.go # gosub
+  - cpumonitor/fakes/*.go # gosub
+  - cpumonitor/stats/*.go # gosub
+  - cpumonitor/vendor/github.com/StackExchange/wmi/*.go # gosub
+  - cpumonitor/vendor/github.com/go-ole/go-ole/*.go # gosub
+  - cpumonitor/vendor/github.com/go-ole/go-ole/oleutil/*.go # gosub
+  - cpumonitor/vendor/github.com/shirou/gopsutil/cpu/*.go # gosub
+  - cpumonitor/vendor/github.com/shirou/gopsutil/internal/common/*.go # gosub
+  - cpumonitor/vendor/golang.org/x/sys/unix/*.go # gosub
+  - cpumonitor/vendor/golang.org/x/sys/windows/*.go # gosub
