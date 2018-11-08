@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["gopkg.in/fsnotify.v1"]
 
 [[constraint]]
   name = "github.com/nats-io/nats"
@@ -36,6 +37,10 @@
 [[constraint]]
   name = "github.com/onsi/gomega"
   version = "1.4.2"
+
+[[constraint]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
 
 [prune]
   go-tests = true
