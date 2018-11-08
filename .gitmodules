@@ -4,3 +4,6 @@
 [submodule "src/github.com/rakyll/hey"]
 	path = src/github.com/rakyll/hey
 	url = https://github.com/cf-routing/hey
+[submodule "src/golang.org/x/text"]
+	path = src/golang.org/x/text
+	url = https://github.com/golang/text
