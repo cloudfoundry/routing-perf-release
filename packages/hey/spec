@@ -7,8 +7,3 @@ files:
   - github.com/rakyll/hey/requester/*.go # gosub
   - golang.org/x/net/http/httpguts/*.go # gosub
   - golang.org/x/net/http2/*.go # gosub
-  - golang.org/x/net/http2/hpack/*.go # gosub
-  - golang.org/x/net/idna/*.go # gosub
-  - golang.org/x/text/secure/bidirule/*.go # gosub
-  - golang.org/x/text/unicode/bidi/*.go # gosub
-  - golang.org/x/text/unicode/norm/*.go # gosub
