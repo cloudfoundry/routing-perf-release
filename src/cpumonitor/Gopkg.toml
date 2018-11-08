@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["gopkg.in/fsnotify.v1"]
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
@@ -36,6 +37,10 @@
 [[constraint]]
   name = "github.com/shirou/gopsutil"
   version = "2.18.10"
+
+[[constraint]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
 
 [prune]
   go-tests = true
