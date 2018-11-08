@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["gopkg.in/fsnotify.v1"]
 
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
@@ -40,6 +41,10 @@
 [[constraint]]
   branch = "master"
   name = "github.com/tedsuo/ifrit"
+
+[[constraint]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
 
 [prune]
   go-tests = true
