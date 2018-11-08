@@ -1,0 +1,6 @@
+[submodule "src/golang.org/x/net"]
+	path = src/golang.org/x/net
+	url = https://github.com/golang/net
+[submodule "src/github.com/rakyll/hey"]
+	path = src/github.com/rakyll/hey
+	url = https://github.com/cf-routing/hey
