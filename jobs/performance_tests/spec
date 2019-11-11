@@ -17,6 +17,9 @@ consumes:
   type: tcp-router
   optional: true
 
+- name: static
+  type: backend
+
 properties:
   performance_tests.tag:
     description: The tag to be used when data is sent to datadog.

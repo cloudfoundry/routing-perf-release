@@ -10,6 +10,7 @@ LATENCY_95=0
 LATENCY_99=0
 NUM_OK="could not extract status codes of responses from summary"
 
+BACKEND_ADDRESS=<%= link("static").instances[0].address %>
 RPS_LOWER_LIMIT=<%= p("performance_tests.throughput_lower_limit") %>
 LATENCY_UPPER_LIMIT_90=<%= p("performance_tests.latency_upper_limit_90") %>
 LATENCY_UPPER_LIMIT_95=<%= p("performance_tests.latency_upper_limit_95") %>
@@ -28,21 +29,34 @@ run_perf_tests() {
   num_loops=$((<%= p("performance_tests.num_requests") %>/<%=p("performance_tests.concurrent_requests")%>))
 
   # run load test
-  echo "Starting load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
+  echo "Starting tcp routed load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
   exec /var/vcap/packages/hey/bin/hey \
     -n $TOTAL_REQUESTS \
     -c $TOTAL_CONCURRENT \
     -t 0 \
     -host "<%=p("performance_tests.host") %>" \
-    ${URI} | tee ${LOG_DIR}/loadtest_${date}.log
+    ${URI} | tee ${LOG_DIR}/tcp_routed_loadtest_${date}.log
+  echo ""
+
+  echo "Starting direct load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
+  exec /var/vcap/packages/hey/bin/hey \
+    -n $TOTAL_REQUESTS \
+    -c $TOTAL_CONCURRENT \
+    -t 0 \
+    http://${BACKEND_ADDRESS}:8080 | tee ${LOG_DIR}/direct_loadtest_${date}.log
   echo ""
 
   # requests / sec
-  data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
+  data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/tcp_routed_loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
   RPS=${data//[[:blank:]]/}
-  echo "requests_per_sec: ${RPS}"
+  echo "tcp_routed_requests_per_sec: ${RPS}"
 
-  latencies=($(grep "90% in " -A 3 ${LOG_DIR}/loadtest_${date}.log | awk '{print $3}'))
+  # requests / sec
+  direct_data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/direct_loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
+  DIRECT_RPS=${direct_data//[[:blank:]]/}
+  echo "direct_requests_per_sec: ${DIRECT_RPS}"
+
+  latencies=($(grep "90% in " -A 3 ${LOG_DIR}/tcp_routed_loadtest_${date}.log | awk '{print $3}'))
   LATENCY_90=${latencies[0]}
   LATENCY_95=${latencies[1]}
   LATENCY_99=${latencies[2]}
@@ -50,7 +64,7 @@ run_perf_tests() {
   echo "95% of response times: ${LATENCY_95} secs"
   echo "99% of response times: ${LATENCY_99} secs"
 
-  NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/loadtest_${date}.log | awk '{ print $2 }')
+  NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/tcp_routed_loadtest_${date}.log | awk '{ print $2 }')
 }
 
 emit_datadog_metrics() {
