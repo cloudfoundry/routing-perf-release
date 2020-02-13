@@ -29,13 +29,13 @@ run_perf_tests() {
   num_loops=$((<%= p("performance_tests.num_requests") %>/<%=p("performance_tests.concurrent_requests")%>))
 
   # run load test
-  echo "Starting tcp routed load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
+  echo "Starting routed load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
   exec /var/vcap/packages/hey/bin/hey \
     -n $TOTAL_REQUESTS \
     -c $TOTAL_CONCURRENT \
     -t 0 \
     -host "<%=p("performance_tests.host") %>" \
-    ${URI} | tee ${LOG_DIR}/tcp_routed_loadtest_${date}.log
+    ${URI} | tee ${LOG_DIR}/routed_loadtest_${date}.log
   echo ""
 
   echo "Starting direct load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
@@ -47,16 +47,16 @@ run_perf_tests() {
   echo ""
 
   # requests / sec
-  data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/tcp_routed_loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
+  data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/routed_loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
   RPS=${data//[[:blank:]]/}
-  echo "tcp_routed_requests_per_sec: ${RPS}"
+  echo "routed_requests_per_sec: ${RPS}"
 
   # requests / sec
   direct_data=$(grep -E "Requests/sec|responses" ${LOG_DIR}/direct_loadtest_${date}.log | tr -s "\n" "," | cut -f 1 -d "," | cut -f 2 -d ":")
   DIRECT_RPS=${direct_data//[[:blank:]]/}
   echo "direct_requests_per_sec: ${DIRECT_RPS}"
 
-  latencies=($(grep "90% in " -A 3 ${LOG_DIR}/tcp_routed_loadtest_${date}.log | awk '{print $3}'))
+  latencies=($(grep "90% in " -A 3 ${LOG_DIR}/routed_loadtest_${date}.log | awk '{print $3}'))
   LATENCY_90=${latencies[0]}
   LATENCY_95=${latencies[1]}
   LATENCY_99=${latencies[2]}
@@ -64,7 +64,7 @@ run_perf_tests() {
   echo "95% of response times: ${LATENCY_95} secs"
   echo "99% of response times: ${LATENCY_99} secs"
 
-  NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/tcp_routed_loadtest_${date}.log | awk '{ print $2 }')
+  NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/routed_loadtest_${date}.log | awk '{ print $2 }')
 }
 
 emit_datadog_metrics() {
