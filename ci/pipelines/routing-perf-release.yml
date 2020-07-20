@@ -2,7 +2,7 @@ resources:
 - name: routing-perf-release
   type: git
   source:
-    branch: master
+    branch: main
     uri: git@github.com:cloudfoundry/routing-perf-release.git
     private_key: ((github_private_key.private_key))
     ignore_paths:
@@ -18,7 +18,7 @@ resources:
 - name: routing-perf-release-ci
   type: git
   source:
-    branch: master
+    branch: main
     uri: git@github.com:cloudfoundry/routing-perf-release.git
     private_key: ((github_private_key.private_key))
     paths:
