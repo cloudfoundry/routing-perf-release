@@ -34,7 +34,7 @@ resources:
 jobs:
 - name: upgrade-go1.x
   plan:
-  - aggregate:
+  - in_parallel:
     - get: routing-perf-release
     - get: golang-release-latest
       trigger: true
@@ -44,7 +44,7 @@ jobs:
     file: routing-perf-release-ci/ci/tasks/upgrade-package-in-release/task.yml
     params:
       PACKAGE: golang-1-linux
-      BRANCH: master
+      BRANCH: main
       RELEASE: release
       AWS_SECRET_ACCESS_KEY: ((blobstore_aws_secret_access_key))
       AWS_ACCESS_KEY_ID: ((blobstore_aws_access_key_id))
@@ -54,7 +54,7 @@ jobs:
   - task: save-golang-version-to-file
     file: routing-perf-release-ci/ci/tasks/save-golang-version-to-file/task.yml
     params:
-      BRANCH: master
+      BRANCH: main
     input_mapping:
       release: modified-release
   - put: routing-perf-release
