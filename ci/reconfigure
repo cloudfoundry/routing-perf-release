@@ -3,9 +3,10 @@
 set -euo pipefail
 
 PIPELINE_DIR="$(dirname $0)/pipelines"
+TARGET="net"
 
 fly \
-  --target ga \
+  --target "${TARGET}" \
   set-pipeline \
   --pipeline "routing-perf-release" \
   --config "${PIPELINE_DIR}/routing-perf-release.yml"
