@@ -10,7 +10,7 @@ cp -a . ${BOSH_INSTALL_TARGET}/src
 export GOPATH=${BOSH_INSTALL_TARGET}
 
 pushd $GOPATH/src
-  go install github.com/rakyll/hey
+  go install github.com/rakyll/hey@v0.1.4
 popd
 
 rm -rf ${BOSH_INSTALL_TARGET}/src ${BOSH_INSTALL_TARGET}/pkg
