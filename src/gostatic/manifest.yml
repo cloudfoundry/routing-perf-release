@@ -2,5 +2,5 @@
 applications:
  - name: static
    env:
-     GOVERSION: go1.6
+     GOVERSION: go1.16
      GOPACKAGENAME: gostatic
