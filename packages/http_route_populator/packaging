@@ -9,8 +9,8 @@ mkdir -p ${BOSH_INSTALL_TARGET}/src
 cp -a . ${BOSH_INSTALL_TARGET}/src
 export GOPATH=${BOSH_INSTALL_TARGET}
 
-pushd $GOPATH/src
-  go install http_route_populator
+pushd $GOPATH/src/http_route_populator
+  go install .
 popd
 
 rm -rf ${BOSH_INSTALL_TARGET}/src ${BOSH_INSTALL_TARGET}/pkg

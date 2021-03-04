@@ -3,14 +3,10 @@ name: http_route_populator
 dependencies:
   - golang-1-linux
 files:
+  - http_route_populator/go.mod
+  - http_route_populator/go.sum
   - http_route_populator/*.go # gosub
   - http_route_populator/publisher/*.go # gosub
   - http_route_populator/publisher/fakes/*.go # gosub
   - http_route_populator/runner/*.go # gosub
-  - http_route_populator/vendor/github.com/nats-io/nats/*.go # gosub
-  - http_route_populator/vendor/github.com/nats-io/nats.go/encoders/builtin/*.go # gosub
-  - http_route_populator/vendor/github.com/nats-io/nats.go/util/*.go # gosub
-  - http_route_populator/vendor/github.com/nats-io/nkeys/*.go # gosub
-  - http_route_populator/vendor/github.com/nats-io/nuid/*.go # gosub
-  - http_route_populator/vendor/golang.org/x/crypto/ed25519/*.go # gosub
-  - http_route_populator/vendor/golang.org/x/crypto/ed25519/internal/edwards25519/*.go # gosub
+
