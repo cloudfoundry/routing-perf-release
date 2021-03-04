@@ -2,7 +2,7 @@
 package fakes
 
 import (
-	"http_route_populator/publisher"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher"
 	"sync"
 )
 

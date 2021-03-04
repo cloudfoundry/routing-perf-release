@@ -3,7 +3,7 @@ package runner
 import (
 	"errors"
 	"fmt"
-	"http_route_populator/publisher"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher"
 	"sync"
 	"time"
 )

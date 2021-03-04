@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"http_route_populator/publisher"
-	"http_route_populator/runner"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/runner"
 	"os"
 	"os/signal"
 	"runtime"

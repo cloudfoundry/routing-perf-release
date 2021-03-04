@@ -3,8 +3,8 @@ package publisher_test
 import (
 	"errors"
 	"fmt"
-	"http_route_populator/publisher"
-	"http_route_populator/publisher/fakes"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher/fakes"
 	"time"
 
 	. "github.com/onsi/ginkgo"

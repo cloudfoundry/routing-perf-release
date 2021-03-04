@@ -2,9 +2,9 @@ package runner_test
 
 import (
 	"errors"
-	"http_route_populator/publisher"
-	"http_route_populator/publisher/fakes"
-	"http_route_populator/runner"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/publisher/fakes"
+	"github.com/cloudfoundry/routing-perf-release/http_route_populator/runner"
 	"sync"
 	"time"
 
