@@ -2,12 +2,8 @@ module github.com/cloudfoundry/routing-perf-release/http_route_populator
 
 go 1.16
 
-replace gopkg.in/fsnotify.v1 v1.4.7 => github.com/fsnotify/fsnotify v1.4.7
-
 require (
-	github.com/fsnotify/fsnotify v1.4.7
 	github.com/hpcloud/tail v1.0.0
-	github.com/nats-io/nats v1.8.1
 	github.com/nats-io/nats.go v1.8.1
 	github.com/nats-io/nkeys v0.1.0
 	github.com/nats-io/nuid v1.0.1
