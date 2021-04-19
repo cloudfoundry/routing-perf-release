@@ -7,6 +7,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 var data string
@@ -26,11 +29,17 @@ func main() {
 	}
 	data = strings.Repeat("Z", responseSize*1024)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, data)
 	})
 
-	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
+	h2s := &http2.Server{}
+	h1s := &http.Server{
+		Addr:    ":" + os.Getenv("PORT"),
+		Handler: h2c.NewHandler(handler, h2s),
+	}
+
+	if err := h1s.ListenAndServe(); err != nil {
 		panic(err)
 	}
 }

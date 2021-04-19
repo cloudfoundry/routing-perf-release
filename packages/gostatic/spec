@@ -5,4 +5,5 @@ dependencies:
 files:
   - gostatic/*.go # gosub
   - gostatic/go.mod
+  - gostatic/go.sum
 

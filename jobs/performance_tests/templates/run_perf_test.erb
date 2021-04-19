@@ -3,6 +3,17 @@
 set -e
 
 LOG_DIR=/var/vcap/sys/log/performance_tests
+GOSTATIC_BACKEND_URI=http://<%= link("static").instances[0].address %>:8080
+GOROUTER_PROXY_URI=<%= p("performance_tests.protocol") %>://${1}:<%= p("performance_tests.port") %>
+
+RPS_LOWER_LIMIT=<%= p("performance_tests.throughput_lower_limit") %>
+LATENCY_UPPER_LIMIT_90=<%= p("performance_tests.latency_upper_limit_90") %>
+LATENCY_UPPER_LIMIT_95=<%= p("performance_tests.latency_upper_limit_95") %>
+LATENCY_UPPER_LIMIT_99=<%= p("performance_tests.latency_upper_limit_99") %>
+
+TOTAL_REQUESTS=<%= p("performance_tests.num_requests") %>
+TOTAL_CONCURRENT=<%= p("performance_tests.concurrent_requests") %>
+
 
 RPS=0
 LATENCY_90=0
@@ -10,23 +21,12 @@ LATENCY_95=0
 LATENCY_99=0
 NUM_OK="could not extract status codes of responses from summary"
 
-BACKEND_ADDRESS=<%= link("static").instances[0].address %>
-RPS_LOWER_LIMIT=<%= p("performance_tests.throughput_lower_limit") %>
-LATENCY_UPPER_LIMIT_90=<%= p("performance_tests.latency_upper_limit_90") %>
-LATENCY_UPPER_LIMIT_95=<%= p("performance_tests.latency_upper_limit_95") %>
-LATENCY_UPPER_LIMIT_99=<%= p("performance_tests.latency_upper_limit_99") %>
-TOTAL_REQUESTS=<%= p("performance_tests.num_requests") %>
-TOTAL_CONCURRENT=<%= p("performance_tests.concurrent_requests") %>
-URI=<%= p("performance_tests.protocol") %>://${1}:<%= p("performance_tests.port") %>
-ROUTER=${2}
-
 ensure_log_dir() {
   mkdir -p ${LOG_DIR}
 }
 
 run_perf_tests() {
   date=$(date +%s)
-  num_loops=$((<%= p("performance_tests.num_requests") %>/<%=p("performance_tests.concurrent_requests")%>))
 
   # run load test
   echo "Starting routed load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
@@ -35,7 +35,7 @@ run_perf_tests() {
     -c $TOTAL_CONCURRENT \
     -t 0 \
     -host "<%=p("performance_tests.host") %>" \
-    ${URI} | tee ${LOG_DIR}/routed_loadtest_${date}.log
+    ${GOROUTER_PROXY_URI} | tee ${LOG_DIR}/routed_loadtest_${date}.log
   echo ""
 
   echo "Starting direct load test of ${TOTAL_REQUESTS} requests, ${TOTAL_CONCURRENT} concurrent..."
@@ -43,7 +43,7 @@ run_perf_tests() {
     -n $TOTAL_REQUESTS \
     -c $TOTAL_CONCURRENT \
     -t 0 \
-    http://${BACKEND_ADDRESS}:8080 | tee ${LOG_DIR}/direct_loadtest_${date}.log
+    ${GOSTATIC_BACKEND_URI} | tee ${LOG_DIR}/direct_loadtest_${date}.log
   echo ""
 
   # requests / sec
@@ -67,29 +67,9 @@ run_perf_tests() {
   NUM_OK=$(grep -E "\[200\].*responses" ${LOG_DIR}/routed_loadtest_${date}.log | awk '{ print $2 }')
 }
 
-emit_datadog_metrics() {
-  rps=$1
-  latency90=$2
-  latency95=$3
-  latency99=$4
-  currenttime=$(date +%s)
-  deployment=<%= spec.deployment %>
-  version=<%= p("performance_tests.routing_release_version") %>
-
-  curl -X POST -H "Content-type: application/json" -d "
-    {\"series\": [
-    {\"metric\":\"performance.requests_per_second\", \"points\":[[$currenttime, $rps]],       \"tags\":[\"deployment:$deployment\", \"router:${ROUTER}\", \"version:$version\"], \"type\":\"gauge\" },
-    {\"metric\":\"performance.latency_90\",          \"points\":[[$currenttime, $latency90]], \"tags\":[\"deployment:$deployment\", \"router:${ROUTER}\", \"version:$version\"], \"type\":\"gauge\" },
-    {\"metric\":\"performance.latency_95\",          \"points\":[[$currenttime, $latency95]], \"tags\":[\"deployment:$deployment\", \"router:${ROUTER}\", \"version:$version\"], \"type\":\"gauge\" },
-    {\"metric\":\"performance.latency_99\",          \"points\":[[$currenttime, $latency99]], \"tags\":[\"deployment:$deployment\", \"router:${ROUTER}\", \"version:$version\"], \"type\":\"gauge\" }
-    ]}" \
-    'https://app.datadoghq.com/api/v1/series?api_key=<%=p("performance_tests.datadog_api_key") %>'
-
-  echo
-}
 
 main() {
-  echo "Performance test run for ${ROUTER} at ${URI}:"
+  echo "Performance test run for ${GOROUTER_PROXY_URI}:"
   ensure_log_dir
   run_perf_tests
 
