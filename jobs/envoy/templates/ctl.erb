@@ -1,0 +1,33 @@
+#!/bin/bash
+
+RUN_DIR=/var/vcap/sys/run/envoy
+LOG_DIR=/var/vcap/sys/log/envoy
+PIDFILE=${RUN_DIR}/pid
+
+export PORT=8080
+
+case $1 in
+
+  start)
+    mkdir -p $RUN_DIR $LOG_DIR
+    chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+    echo $$ > $PIDFILE
+
+    exec /var/vcap/packages/envoy/bin/envoy \
+      --config-path /var/vcap/jobs/envoy/config/envoy.yaml \
+      >>  $LOG_DIR/envoy.stdout.log \
+      2>> $LOG_DIR/envoy.stderr.log
+
+    ;;
+
+  stop)
+    kill -9 `cat $PIDFILE`
+    rm -f $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+
+esac

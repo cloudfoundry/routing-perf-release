@@ -1,0 +1,13 @@
+---
+name: envoy
+
+templates:
+  ctl.erb: bin/ctl
+  envoy.yaml.erb: config/envoy.yaml
+  sds-server-validation-context.yaml.erb: config/sds-server-validation-context.yaml
+  sds-server-cert-and-key.yaml.erb: config/sds-server-cert-and-key.yaml
+
+packages:
+  - envoy
+
+properties: {}

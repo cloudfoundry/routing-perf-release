@@ -1,0 +1,61 @@
+admin:
+  access_log_path: /var/vcap/sys/log/envoy/envoy.log
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 61003
+node:
+  cluster: proxy-cluster
+  id: envoy-cluster
+static_resources:
+  clusters:
+  - circuit_breakers:
+      thresholds:
+      - max_connections: 4294967295
+    connect_timeout: 0.250s
+    load_assignment:
+      cluster_name: 0-service-cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 8080
+    name: 0-service-cluster
+    type: STATIC
+  listeners:
+  - address:
+      socket_address:
+        address: 127.0.0.1
+        port_value: 61001
+    filter_chains:
+    - filters:
+      - name: envoy.tcp_proxy
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+          cluster: 0-service-cluster
+          stat_prefix: 0-stats
+      transport_socket:
+        name: listener-8080
+        typed_config:
+          '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            alpn_protocols: [ "h2,http/1.1" ]
+            tls_certificate_sds_secret_configs:
+            - name: server-cert-and-key
+              sds_config:
+                path: /var/vcap/jobs/envoy/config/certs/sds-server-cert-and-key.yaml
+            tls_params:
+              cipher_suites:
+              - ECDHE-RSA-AES256-GCM-SHA384
+              - ECDHE-RSA-AES128-GCM-SHA256
+            validation_context_sds_secret_config:
+              name: server-validation-context
+              sds_config:
+                path: /var/vcap/jobs/envoy/config/certs/sds-server-validation-context.yaml
+          require_client_certificate: true
+    name: listener-8080
+stats_config:
+  stats_matcher:
+    reject_all: true
