@@ -142,7 +142,7 @@ instance_groups:
         latency_upper_limit_90: 1.85
         latency_upper_limit_95: 1.95
         latency_upper_limit_99: 3.15
-#  lifecycle: errand
+  lifecycle: errand
   networks:
   - name: default
 
