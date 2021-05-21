@@ -10,4 +10,14 @@ templates:
 packages:
   - envoy
 
-properties: {}
+properties:
+  client_validation.ca_certificate:
+    description: "The CA that signed the client cert/key used by the perf test client."
+    default: ""
+  server_tls.certificate:
+    description: "The certificate for the TLS endpoint"
+    default: ""
+  server_tls.private_key:
+    description: "The private key for the TLS endpoint"
+    default: ""
+

@@ -69,6 +69,10 @@ instance_groups:
     release: routing
     properties:
       router:
+        tls_pem:
+        - cert_chain: "((application_ca.certificate))"
+          private_key: "((application_ca.private_key))"
+        enable_ssl: true
         ca_certs: |
           ((application_ca.certificate))
         debug_address: 0.0.0.0:17002
@@ -100,6 +104,12 @@ instance_groups:
         response_size: 1
   - name: envoy
     release: routing-perf
+    properties:
+      client_validation:
+        ca_certificate: ((application_ca.ca))
+      server_tls:
+        certificate: ((application_ca.certificate))
+        private_key: ((application_ca.private_key))
   networks:
   - name: default
 
@@ -131,6 +141,8 @@ instance_groups:
   - name: performance_tests
     release: routing-perf
     properties:
+      client_certificate: ((application_ca.certificate))
+      client_private_key: ((application_ca.private_key))
       performance_tests:
         tag: gorouter
         host: gostatic-0.foo.com

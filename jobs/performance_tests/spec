@@ -4,6 +4,8 @@ name: performance_tests
 templates:
   run.erb: bin/run
   run_perf_test.erb: bin/run_perf_test
+  client.crt.erb: config/certs/client.crt
+  client.key.erb: config/certs/client.key
 
 packages:
   - hey
@@ -21,6 +23,10 @@ consumes:
   type: backend
 
 properties:
+  client_certificate:
+    description: Certificate to use for mutual TLS with envoy
+  client_private_key:
+    description: Private key to use for mutual TLS with envoy
   performance_tests.tag:
     description: The tag to be used when data is sent to datadog.
   performance_tests.host:
