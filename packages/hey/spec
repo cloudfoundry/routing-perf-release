@@ -3,7 +3,7 @@ name: hey
 dependencies:
   - golang-1-linux
 files:
-  - github.com/rakyll/hey/*.go # gosub
+  - github.com/rakyll/hey/* # gergsub
   - github.com/rakyll/hey/requester/*.go # gosub
   - golang.org/x/net/http/httpguts/*.go # gosub
   - golang.org/x/net/http2/*.go # gosub
