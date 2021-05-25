@@ -73,6 +73,7 @@ instance_groups:
         - cert_chain: "((application_ca.certificate))"
           private_key: "((application_ca.private_key))"
         enable_ssl: true
+        enable_http2: true
         ca_certs: |
           ((application_ca.certificate))
         debug_address: 0.0.0.0:17002
@@ -127,7 +128,7 @@ instance_groups:
       http_route_populator:
         app_domain: foo.com
         app_name: gostatic
-        num_routes: 100000
+        num_routes: 50_000
   networks:
   - name: default
 
