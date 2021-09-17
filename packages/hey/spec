@@ -1,7 +1,7 @@
 ---
 name: hey
 dependencies:
-  - golang-1-linux
+  - golang-1.16-linux
 files:
   - github.com/rakyll/hey/*.go # gosub
   - github.com/rakyll/hey/requester/*.go # gosub

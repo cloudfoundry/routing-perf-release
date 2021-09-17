@@ -1,7 +1,7 @@
 ---
 name: gostatic
 dependencies:
-- golang-1-linux
+- golang-1.16-linux
 files:
   - gostatic/*.go # gosub
   - gostatic/go.mod

@@ -1,7 +1,7 @@
 ---
 name: throughputramp
 dependencies:
-  - golang-1-linux
+  - golang-1.16-linux
   - hey
 files:
   - throughputramp/**/*.go # gosub

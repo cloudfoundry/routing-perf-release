@@ -1,7 +1,7 @@
 ---
 name: cpumonitor
 dependencies:
-  - golang-1-linux
+  - golang-1.16-linux
 files:
   - cpumonitor/*.go # gosub
   - cpumonitor/fakes/*.go # gosub
