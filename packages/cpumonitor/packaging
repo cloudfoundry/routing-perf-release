@@ -2,7 +2,7 @@
 set -e -x
 
 export GOROOT=$(readlink -nf /var/vcap/packages/golang-*-linux)
-export GOCACHE=/var/vcap/data/golang-1-linux/cache
+export GOCACHE=/var/vcap/data/golang-1.16-linux/cache
 export PATH=$GOROOT/bin:$PATH
 
 mkdir -p ${BOSH_INSTALL_TARGET}/src
